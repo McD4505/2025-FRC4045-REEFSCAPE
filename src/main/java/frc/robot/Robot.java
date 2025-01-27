@@ -7,6 +7,7 @@ package frc.robot;
 import com.ctre.phoenix6.Utils;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -34,12 +35,20 @@ public class Robot extends TimedRobot {
       double omegaRps = Units.radiansToRotations(driveState.Speeds.omegaRadiansPerSecond);
 
       LimelightHelpers.SetRobotOrientation("limelight", headingDeg, 0, 0, 0, 0, 0);
+      LimelightHelpers.SetRobotOrientation("limelight-two", headingDeg, 0, 0, 0, 0, 0);
+
       var mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
       if (mt2 != null && mt2.tagCount > 0 && omegaRps < 2.0) {
         m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 9999999));
-        m_robotContainer.drivetrain.addVisionMeasurement(mt2.pose, mt2.timestampSeconds);
+        m_robotContainer.drivetrain.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
       }
-  }
+
+      var mt2_1 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-two");
+      if (mt2_1 != null && mt2_1.tagCount > 0 && omegaRps < 2.0) {
+        m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 9999999));
+        m_robotContainer.drivetrain.addVisionMeasurement(mt2_1.pose, Utils.fpgaToCurrentTime(mt2_1.timestampSeconds));
+      }
+    }
   }
 
   @Override
