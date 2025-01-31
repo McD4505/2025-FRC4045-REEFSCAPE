@@ -9,8 +9,8 @@ import java.io.IOException;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 
@@ -26,14 +26,19 @@ public class Vision extends SubsystemBase {
     }
   }
 
-  public static Pose2d getTargetPose() {
-    int id = (int)LimelightHelpers.getFiducialID("limelight-two");
-    
+  public static Pose2d transformFromTag(int id, Transform2d transform) {
+    Pose2d tagPose = getTargetPose(id);
+    return tagPose.plus(transform);
+  }
+
+  public static int getCurrentTagId(String limelightName) {
+    return (int) LimelightHelpers.getFiducialID(limelightName);
+  }
+
+  public static Pose2d getTargetPose(int id) {
     if(id <= 0) return new Pose2d();
 
-    SmartDashboard.putNumber("detected id", id);
     return fieldLayout.getTagPose(id).get().toPose2d();
-    // return AprilTagPoses.get((int)LimelightHelpers.getFiducialID("limelight-two"));
   }
 
   @Override

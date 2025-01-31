@@ -27,13 +27,13 @@ public class TargetLeftBranch extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    Pose2d tagPose = Vision.getTargetPose();
+    int tagId = Vision.getCurrentTagId("limelight-two");
 
     Translation2d baseTranslation = new Translation2d(0.5, Units.inchesToMeters(-6));
 
     Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
 
-    Pose2d targetPose = tagPose.plus(transform);
+    Pose2d targetPose = Vision.transformFromTag(tagId, transform);
     drivetrain.setTargetPose(targetPose);
   }
 
