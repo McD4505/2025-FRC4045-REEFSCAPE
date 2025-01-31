@@ -15,6 +15,7 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
@@ -53,6 +54,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveTranslation m_translationCharacterization = new SwerveRequest.SysIdSwerveTranslation();
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
+
+    private Pose2d targetPose = new Pose2d();
+
+    public void setTargetPose(Pose2d newPose) {
+        targetPose = newPose;
+    }
+
+    public Pose2d getTargetPose() {
+        return targetPose;
+    }
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -117,6 +128,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private SysIdRoutine m_sysIdRoutineToApply = m_sysIdRoutineTranslation;
 
     private Field2d m_field = new Field2d();
+
+    private Field2d targetPoseField = new Field2d();
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -280,6 +293,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
         m_field.setRobotPose(getState().Pose);
         SmartDashboard.putData("field", m_field);
+
+        targetPoseField.setRobotPose(targetPose);
+        SmartDashboard.putData("target field", targetPoseField);
     }
 
     private void startSimThread() {
