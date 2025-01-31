@@ -7,7 +7,9 @@ package frc.robot;
 import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
+
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,6 +22,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Vision;
+import frc.robot.commands.*;
 
 public class RobotContainer {
     private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -38,19 +42,19 @@ public class RobotContainer {
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
 
-    private final SendableChooser<Command> m_Chooser = new SendableChooser<>();
+    private final SendableChooser<Command> m_Chooser = AutoBuilder.buildAutoChooser();
+
+    Vision vision = new Vision();
 
     public RobotContainer() {
         configureBindings();
-
-        m_Chooser.setDefaultOption("do nothing", new InstantCommand());
-        m_Chooser.addOption("auto test 1", new PathPlannerAuto("auto test 1"));
-        m_Chooser.addOption("s1 to b1", new PathPlannerAuto("s1 to b1"));
 
         SmartDashboard.putData("auto chooser", m_Chooser);
     }
 
     private void configureBindings() {
+        joystick.povLeft().onTrue(new TargetLeftBranch(drivetrain));
+
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
