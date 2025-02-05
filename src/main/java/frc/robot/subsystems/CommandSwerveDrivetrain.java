@@ -13,12 +13,14 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -294,7 +296,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         m_field.setRobotPose(getState().Pose);
         SmartDashboard.putData("field", m_field);
 
-        targetPoseField.setRobotPose(targetPose);
+        targetPoseField.setRobotPose(getTargetPose());
         SmartDashboard.putData("target field", targetPoseField);
     }
 
@@ -312,4 +314,35 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         });
         m_simNotifier.startPeriodic(kSimLoopPeriod);
     }
+    
+    // pathfinding commands
+    public Command pathfindToPose(Pose2d pose) {
+        // Create the constraints to use while pathfinding
+        PathConstraints constraints = new PathConstraints(
+                3.0, 2.0,  // 4 m/s^2
+                Units.degreesToRadians(540), Units.degreesToRadians(720));
+    
+        // Since AutoBuilder is configured, we can use it to build pathfinding commands
+        Command pathfindingCommand = AutoBuilder.pathfindToPose(
+                pose,
+                constraints,
+                0.0 // Goal end velocity in meters/sec
+        );
+        // DriverStation.reportWarning("please help me", false);
+    
+        return pathfindingCommand;
+    }
+    
+    public Command pathfindToRobotTarget() {
+        Pose2d target = getTargetPose();
+    
+        DriverStation.reportWarning("Target pose: " + target.toString(), false);
+    
+        // if(target.equals(new Pose2d())) {
+        //     return new PrintCommand("Could not find valid target pose");
+        // }
+    
+        return pathfindToPose(target);
+    }
+    
 }
