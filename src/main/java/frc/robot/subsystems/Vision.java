@@ -9,8 +9,12 @@ import java.io.IOException;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 
@@ -39,6 +43,18 @@ public class Vision extends SubsystemBase {
     if(id <= 0) return new Pose2d();
 
     return fieldLayout.getTagPose(id).get().toPose2d();
+  }
+
+  public static void targetBranch(CommandSwerveDrivetrain drivetrain, boolean isLeft) {
+    int tagId = Vision.getCurrentTagId("limelight-two");
+
+    int sign = isLeft ? -1 : 1;
+    Translation2d baseTranslation = new Translation2d(0.5, Units.inchesToMeters(sign * 6));
+
+    Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
+
+    Pose2d targetPose = Vision.transformFromTag(tagId, transform);
+    drivetrain.setTargetPose(targetPose);
   }
 
   @Override
