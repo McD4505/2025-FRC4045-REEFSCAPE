@@ -57,6 +57,8 @@ public class RobotContainer {
     private void configureBindings() {
         joystick.povLeft().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, true)));
         joystick.povRight().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, false)));
+
+        joystick.povDown().onTrue(new InstantCommand(() -> Vision.targetStation(drivetrain)));
         
         joystick.povUp().whileTrue(new InstantCommand(() -> drivetrain.pathfindToRobotTarget().schedule()));
 

@@ -14,7 +14,6 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.LimelightHelpers;
 
@@ -50,6 +49,17 @@ public class Vision extends SubsystemBase {
 
     int sign = isLeft ? -1 : 1;
     Translation2d baseTranslation = new Translation2d(0.5, Units.inchesToMeters(sign * 6));
+
+    Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
+
+    Pose2d targetPose = Vision.transformFromTag(tagId, transform);
+    drivetrain.setTargetPose(targetPose);
+  }
+
+  public static void targetStation(CommandSwerveDrivetrain drivetrain) {
+    int tagId = Vision.getCurrentTagId("limelight");
+
+    Translation2d baseTranslation = new Translation2d(0.5, 0);
 
     Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
 
