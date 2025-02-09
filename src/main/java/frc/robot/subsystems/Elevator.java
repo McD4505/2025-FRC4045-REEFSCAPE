@@ -18,7 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class Elevator extends SubsystemBase {
 
   public enum ReefLevel {
-    LEVEL_3, LEVEL_4
+    BASE, LEVEL_3, LEVEL_4
   }
   /** Creates a new Elevator. */
   private SparkMax lift1 = new SparkMax(8, MotorType.kBrushless);
@@ -27,13 +27,15 @@ public class Elevator extends SubsystemBase {
   private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
 
   private final double gearRatio = 1;  // rot_motor/rot_pulley
-  private final double pulleyRadius = 0.02;  // meters
+  private final double pulleyRadius = 0.0254;  // meters
 
   private final double pulleyCircumfrence = 2 * Math.PI * pulleyRadius;  // = meters/rot_pulley
 
   private final double conversionFactor = pulleyCircumfrence / gearRatio;  // meters/rot_motor
 
   private final double heightOffset = 0.05;
+
+  private final double baseHeight = heightOffset + 0.03;
   private final double level3Height = heightOffset + 1.27;
   private final double level4Height = heightOffset + 1.9;
 
@@ -49,7 +51,7 @@ public class Elevator extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     lift1Config.closedLoop
-      .p(1)
+      .p(0.01)
       .i(0)
       .d(0);
     
@@ -68,8 +70,15 @@ public class Elevator extends SubsystemBase {
     elevatorController.setReference(height, ControlType.kPosition);
   }
 
+  public void disablePID() {
+    elevatorController.setReference(0, ControlType.kDutyCycle);
+  }
+
   public void setTarget(ReefLevel level) {
     switch (level) {
+      case BASE:
+        setHeight(baseHeight);
+        break;
       case LEVEL_3:
         setHeight(level3Height);
         break;
