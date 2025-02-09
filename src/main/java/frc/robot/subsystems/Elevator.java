@@ -34,7 +34,7 @@ public class Elevator extends SubsystemBase {
 
   private final double conversionFactor = pulleyCircumfrence / gearRatio;  // meters/rot_motor
 
-  private final double heightOffset = 0.05;
+  private final double heightOffset = -0.05;
 
   private final double baseHeight = heightOffset + 0.03;
   private final double level3Height = heightOffset + 1.27;
