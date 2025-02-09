@@ -28,11 +28,12 @@ public class Elevator extends SubsystemBase {
   private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
 
   private final double gearRatio = 1;  // rot_motor/rot_pulley TODO find actual ratio
-  private final double sprocketRadius = Units.inchesToMeters(1);  // meters TODO find actual radius
+  private final double sprocketRadius = Units.inchesToMeters(0.875);  // meters
 
-  private final double pulleyCircumfrence = 2 * Math.PI * sprocketRadius;  // = meters/rot_pulley
+  private final double sprocketCircumfrence = 2 * Math.PI * sprocketRadius;  // = meters/rot_pulley
 
-  private final double conversionFactor = pulleyCircumfrence / gearRatio;  // meters/rot_motor
+  private final double elevatorToChain = 3/1;
+  private final double conversionFactor = elevatorToChain * sprocketCircumfrence / gearRatio;  // meters/rot_motor
 
   private final double heightOffset = -0.05;
 
