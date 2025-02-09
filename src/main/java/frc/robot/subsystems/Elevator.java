@@ -13,6 +13,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Elevator extends SubsystemBase {
@@ -27,9 +28,9 @@ public class Elevator extends SubsystemBase {
   private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
 
   private final double gearRatio = 1;  // rot_motor/rot_pulley
-  private final double pulleyRadius = 0.0254;  // meters
+  private final double sprocketRadius = Units.inchesToMeters(1);  // meters
 
-  private final double pulleyCircumfrence = 2 * Math.PI * pulleyRadius;  // = meters/rot_pulley
+  private final double pulleyCircumfrence = 2 * Math.PI * sprocketRadius;  // = meters/rot_pulley
 
   private final double conversionFactor = pulleyCircumfrence / gearRatio;  // meters/rot_motor
 
