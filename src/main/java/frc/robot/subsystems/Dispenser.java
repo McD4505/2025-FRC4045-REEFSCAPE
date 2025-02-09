@@ -30,7 +30,7 @@ public class Dispenser extends SubsystemBase {
 
     config
       .inverted(false)
-      .idleMode(IdleMode.kCoast);
+      .idleMode(IdleMode.kBrake);
 
     config.encoder
       .positionConversionFactor(conversionFactor)
