@@ -28,7 +28,7 @@ public class Elevator extends SubsystemBase {
   private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
 
   private final double gearRatio = 1;  // rot_motor/rot_pulley
-  private final double sprocketRadius = Units.inchesToMeters(1);  // meters
+  private final double sprocketRadius = Units.inchesToMeters(1);  // meters TODO find actual radius
 
   private final double pulleyCircumfrence = 2 * Math.PI * sprocketRadius;  // = meters/rot_pulley
 
@@ -36,9 +36,15 @@ public class Elevator extends SubsystemBase {
 
   private final double heightOffset = -0.05;
 
-  private final double baseHeight = heightOffset + 0.03;
-  private final double level3Height = heightOffset + 1.27;
-  private final double level4Height = heightOffset + 1.9;
+  private final double baseHeight = 0.03;
+  private final double level3Height = 1.21;
+  private final double level4Height = 1.83;
+
+  private final double scoringOffset = 0.1;
+
+  private final double baseSetpoint = baseHeight + heightOffset;
+  private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
+  private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
 
   public Elevator() {
     SparkMaxConfig lift1Config = new SparkMaxConfig();
@@ -80,13 +86,13 @@ public class Elevator extends SubsystemBase {
   public void setTarget(ReefLevel level) {
     switch (level) {
       case BASE:
-        setHeight(baseHeight);
+        setHeight(baseSetpoint);
         break;
       case LEVEL_3:
-        setHeight(level3Height);
+        setHeight(level3Setpoint);
         break;
       case LEVEL_4:
-        setHeight(level4Height);
+        setHeight(level4Setpoint);
         break;
     
       default:
