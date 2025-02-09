@@ -54,6 +54,8 @@ public class Elevator extends SubsystemBase {
       .p(0.01)
       .i(0)
       .d(0);
+
+    lift1.configure(lift1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     
     SparkMaxConfig lift2Config = new SparkMaxConfig();
     lift2Config.follow(lift1, true);
