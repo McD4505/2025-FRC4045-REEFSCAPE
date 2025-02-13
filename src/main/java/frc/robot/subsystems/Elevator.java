@@ -22,12 +22,12 @@ public class Elevator extends SubsystemBase {
     BASE, LEVEL_3, LEVEL_4
   }
   /** Creates a new Elevator. */
-  private SparkMax lift1 = new SparkMax(8, MotorType.kBrushless);
-  private SparkMax lift2 = new SparkMax(9, MotorType.kBrushless);
+  private SparkMax lift1 = new SparkMax(15, MotorType.kBrushless);
+  private SparkMax lift2 = new SparkMax(16, MotorType.kBrushless);
 
   private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
 
-  private final double gearRatio = 1;  // rot_motor/rot_pulley TODO find actual ratio
+  private final double gearRatio = 10.71/1;  // rot_motor/rot_pulley TODO find actual ratio
   private final double sprocketRadius = Units.inchesToMeters(0.875);  // meters
 
   private final double sprocketCircumfrence = 2 * Math.PI * sprocketRadius;  // = meters/rot_pulley
@@ -43,7 +43,7 @@ public class Elevator extends SubsystemBase {
 
   private final double scoringOffset = 0.1;
 
-  private final double baseSetpoint = baseHeight + heightOffset;
+  private final double baseSetpoint = baseHeight;
   private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
   private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
 
@@ -59,14 +59,14 @@ public class Elevator extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     lift1Config.closedLoop
-      .p(0.01)
+      .p(0.3)
       .i(0)
       .d(0);
 
     lift1.configure(lift1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     
     SparkMaxConfig lift2Config = new SparkMaxConfig();
-    lift2Config.follow(lift1, true);
+    lift2Config.follow(lift1, false);
 
     lift2.configure(lift2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -82,6 +82,10 @@ public class Elevator extends SubsystemBase {
 
   public void disablePID() {
     elevatorController.setReference(0, ControlType.kDutyCycle);
+  }
+
+  public void resetPosition() {
+    lift1.getEncoder().setPosition(0);
   }
 
   public void setTarget(ReefLevel level) {

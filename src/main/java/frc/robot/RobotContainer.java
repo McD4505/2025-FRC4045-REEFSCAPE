@@ -21,8 +21,10 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.Elevator.ReefLevel;
 import frc.robot.commands.*;
 
 public class RobotContainer {
@@ -47,6 +49,8 @@ public class RobotContainer {
     Vision vision = new Vision();
 
     LEDs leds = new LEDs(0, 60);
+
+    private Elevator elevator = new Elevator();
 
     public RobotContainer() {
         configureBindings();
@@ -73,10 +77,13 @@ public class RobotContainer {
             )
         );
 
-        joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        joystick.b().whileTrue(drivetrain.applyRequest(() ->
-            point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        ));
+        joystick.a().onTrue(new InstantCommand(() -> elevator.setTarget(ReefLevel.LEVEL_3)));
+        joystick.b().onTrue(new InstantCommand(() -> elevator.setTarget(ReefLevel.LEVEL_4)));
+        joystick.x().onTrue(new InstantCommand(() -> elevator.setTarget(ReefLevel.BASE)));
+        // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
+        // joystick.b().whileTrue(drivetrain.applyRequest(() ->
+        //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
+        // ));
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
