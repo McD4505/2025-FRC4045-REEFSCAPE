@@ -25,12 +25,14 @@ public class Elevator extends SubsystemBase {
   private SparkMax lift1 = new SparkMax(15, MotorType.kBrushless);
   private SparkMax lift2 = new SparkMax(16, MotorType.kBrushless);
 
+  private Dispenser dispenser = new Dispenser();
+
   private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
 
-  private final double gearRatio = 10.71/1;  // rot_motor/rot_pulley TODO find actual ratio
+  private final double gearRatio = 10.71/1;  // rot_motor/rot_pulley
   private final double sprocketRadius = Units.inchesToMeters(0.875);  // meters
 
-  private final double sprocketCircumfrence = 2 * Math.PI * sprocketRadius;  // = meters/rot_pulley
+  private final double sprocketCircumfrence = 2 * Math.PI * sprocketRadius;  // meters/rot_pulley
 
   private final double elevatorToChain = 3/1;
   private final double conversionFactor = elevatorToChain * sprocketCircumfrence / gearRatio;  // meters/rot_motor
@@ -46,6 +48,8 @@ public class Elevator extends SubsystemBase {
   private final double baseSetpoint = baseHeight;
   private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
   private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
+
+  private ReefLevel level = ReefLevel.BASE;
 
   public Elevator() {
     SparkMaxConfig lift1Config = new SparkMaxConfig();
@@ -73,7 +77,9 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    if(level == ReefLevel.BASE && Math.abs(lift1.getEncoder().getPosition() - baseSetpoint) < 0.1) {
+      disablePID();
+    }
   }
 
   public void setHeight(double height) {
@@ -89,6 +95,8 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setTarget(ReefLevel level) {
+    this.level = level;
+    
     switch (level) {
       case BASE:
         setHeight(baseSetpoint);

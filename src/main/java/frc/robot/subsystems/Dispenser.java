@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Dispenser extends SubsystemBase {
   private SparkMax max = new SparkMax(9, MotorType.kBrushless);
+  private CoralSensor coralSensor = new CoralSensor();
 
   private SparkClosedLoopController controller = max.getClosedLoopController();
 
@@ -45,6 +46,10 @@ public class Dispenser extends SubsystemBase {
 
   public void stop() {
     controller.setReference(0, ControlType.kDutyCycle);
+  }
+
+  public boolean hasCoral() {
+    return coralSensor.hasCoral();
   }
 
   @Override
