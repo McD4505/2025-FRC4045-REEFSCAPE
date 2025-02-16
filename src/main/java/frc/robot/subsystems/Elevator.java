@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.AddressableLedStrip.LEDState;
 
@@ -23,12 +24,12 @@ public class Elevator extends SubsystemBase {
     BASE, LEVEL_3, LEVEL_4
   }
   /** Creates a new Elevator. */
-  private SparkMax lift1 = new SparkMax(15, MotorType.kBrushless);
-  private SparkMax lift2 = new SparkMax(16, MotorType.kBrushless);
+  private SparkMax lift = new SparkMax(15, MotorType.kBrushless);
+  private SparkMax liftFollower = new SparkMax(16, MotorType.kBrushless);
 
   private Dispenser dispenser = new Dispenser();
 
-  private SparkClosedLoopController elevatorController = lift1.getClosedLoopController();
+  private SparkClosedLoopController elevatorController = lift.getClosedLoopController();
 
   private final double gearRatio = 10.71/1;  // rot_motor/rot_pulley
   private final double sprocketRadius = Units.inchesToMeters(0.875);  // meters
@@ -55,34 +56,42 @@ public class Elevator extends SubsystemBase {
   private AddressableLedStrip leds = new AddressableLedStrip(0, 30);
 
   public Elevator() {
-    SparkMaxConfig lift1Config = new SparkMaxConfig();
+    configureLift();
+    configureLiftFollower();
+  }
 
-    lift1Config
+  private void configureLift() {
+    SparkMaxConfig config = new SparkMaxConfig();
+
+    config
       .inverted(false)
       .idleMode(IdleMode.kBrake);
 
-    lift1Config.encoder
+    config.encoder
       .positionConversionFactor(conversionFactor)
       .velocityConversionFactor(conversionFactor);
 
-    lift1Config.closedLoop
+    config.closedLoop
       .p(0.3)
       .i(0)
       .d(0);
 
-    lift1.configure(lift1Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-    
-    SparkMaxConfig lift2Config = new SparkMaxConfig();
-    lift2Config.follow(lift1, false);
+    lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
 
-    lift2.configure(lift2Config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  private void configureLiftFollower() {
+    SparkMaxConfig config = new SparkMaxConfig();
+    config.follow(lift, false);
+
+    liftFollower.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   @Override
   public void periodic() {
-    if(level == ReefLevel.BASE && Math.abs(lift1.getEncoder().getPosition() - baseSetpoint) < 0.1) {
+    if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getPosition() - baseSetpoint) < 0.1) {
       disablePID();
     }
+    
     if(dispenser.hasCoral()) {
       leds.setState(LEDState.GREEN);
     } else {
@@ -99,7 +108,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public void resetPosition() {
-    lift1.getEncoder().setPosition(0);
+    lift.getEncoder().setPosition(0);
   }
 
   public void setTarget(ReefLevel level) {
@@ -119,5 +128,9 @@ public class Elevator extends SubsystemBase {
       default:
         break;
     }
+  }
+
+  public Command setTargetCommand(ReefLevel level) {
+    return runOnce(() -> setTarget(level));
   }
 }

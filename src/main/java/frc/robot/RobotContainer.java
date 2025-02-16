@@ -73,9 +73,9 @@ public class RobotContainer {
             )
         );
 
-        joystick.a().onTrue(new InstantCommand(() -> elevator.setTarget(ReefLevel.LEVEL_3)));
-        joystick.b().onTrue(new InstantCommand(() -> elevator.setTarget(ReefLevel.LEVEL_4)));
-        joystick.x().onTrue(new InstantCommand(() -> elevator.setTarget(ReefLevel.BASE)));
+        joystick.a().onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_3));
+        joystick.b().onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_4));
+        joystick.x().onTrue(elevator.setTargetCommand(ReefLevel.BASE));
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))

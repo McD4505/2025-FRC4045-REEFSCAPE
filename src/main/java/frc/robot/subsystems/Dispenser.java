@@ -17,16 +17,25 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Dispenser extends SubsystemBase {
-  private SparkMax max = new SparkMax(9, MotorType.kBrushless);
+  private SparkMax dispenser = new SparkMax(3, MotorType.kBrushless);
+  private SparkMax angleMotor = new SparkMax(4, MotorType.kBrushless);
+
   private CoralSensor coralSensor = new CoralSensor();
 
-  private SparkClosedLoopController controller = max.getClosedLoopController();
+  private SparkClosedLoopController controller = dispenser.getClosedLoopController();
 
   private final double wheelRadius = Units.inchesToMeters(2);
   private final double conversionFactor = 2 * Math.PI * wheelRadius;
 
+  private final double angleConversionFactor = 360;  // degrees/rot_motor
+
   /** Creates a new Dispenser. */
   public Dispenser() {
+    configureDispenser();
+    configureAngleMotor();
+  }
+
+  private void configureDispenser() {
     SparkMaxConfig config = new SparkMaxConfig();
 
     config
@@ -37,7 +46,21 @@ public class Dispenser extends SubsystemBase {
       .positionConversionFactor(conversionFactor)
       .velocityConversionFactor(conversionFactor);
 
-    max.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+    dispenser.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
+
+  private void configureAngleMotor() {
+    SparkMaxConfig config = new SparkMaxConfig();
+
+    config
+      .inverted(false)
+      .idleMode(IdleMode.kBrake);
+
+    config.encoder
+      .positionConversionFactor(angleConversionFactor)
+      .velocityConversionFactor(angleConversionFactor);
+
+    angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
   public void setSpeed(double metersPerSecond) {
