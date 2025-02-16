@@ -15,6 +15,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.AddressableLedStrip.LEDState;
 
 public class Elevator extends SubsystemBase {
 
@@ -51,6 +52,8 @@ public class Elevator extends SubsystemBase {
 
   private ReefLevel level = ReefLevel.BASE;
 
+  private AddressableLedStrip leds = new AddressableLedStrip(0, 30);
+
   public Elevator() {
     SparkMaxConfig lift1Config = new SparkMaxConfig();
 
@@ -80,6 +83,11 @@ public class Elevator extends SubsystemBase {
     if(level == ReefLevel.BASE && Math.abs(lift1.getEncoder().getPosition() - baseSetpoint) < 0.1) {
       disablePID();
     }
+    if(dispenser.hasCoral()) {
+      leds.setState(LEDState.GREEN);
+    } else {
+      leds.setState(LEDState.RED);
+    }
   }
 
   public void setHeight(double height) {
@@ -96,7 +104,7 @@ public class Elevator extends SubsystemBase {
 
   public void setTarget(ReefLevel level) {
     this.level = level;
-    
+
     switch (level) {
       case BASE:
         setHeight(baseSetpoint);

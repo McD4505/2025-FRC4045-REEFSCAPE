@@ -17,8 +17,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class LEDs extends SubsystemBase {
   /** Creates a new LEDs. */
-  private final AddressableLED led;
-  private final AddressableLEDBuffer buffer;
+  private AddressableLED led;
+  private AddressableLEDBuffer buffer;
   private final int length;
 
   public enum LEDState {
@@ -39,7 +39,6 @@ public class LEDs extends SubsystemBase {
   public LEDs(int port, int length) {
     this.length = length;
     led = new AddressableLED(port);
-
     buffer = new AddressableLEDBuffer(length);
 
     led.setLength(buffer.getLength());
