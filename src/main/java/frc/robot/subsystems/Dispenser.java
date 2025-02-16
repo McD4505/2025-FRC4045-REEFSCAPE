@@ -14,7 +14,9 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Elevator.ReefLevel;
 
 public class Dispenser extends SubsystemBase {
   private SparkMax dispenser = new SparkMax(3, MotorType.kBrushless);
@@ -23,11 +25,17 @@ public class Dispenser extends SubsystemBase {
   private CoralSensor coralSensor = new CoralSensor();
 
   private SparkClosedLoopController controller = dispenser.getClosedLoopController();
+  private SparkClosedLoopController angleController = angleMotor.getClosedLoopController();
 
   private final double wheelRadius = Units.inchesToMeters(2);
   private final double conversionFactor = 2 * Math.PI * wheelRadius;
 
   private final double angleConversionFactor = 360;  // degrees/rot_motor
+
+  private final double baseAngleSetpoint = 0;
+  private final double intakeAngleSetpoint = 30;
+  private final double level3AngleSetpoint = 30;
+  private final double level4AngleSetpoint = 60;
 
   /** Creates a new Dispenser. */
   public Dispenser() {
@@ -53,7 +61,7 @@ public class Dispenser extends SubsystemBase {
     SparkMaxConfig config = new SparkMaxConfig();
 
     config
-      .inverted(false)
+      .inverted(true)
       .idleMode(IdleMode.kBrake);
 
     config.encoder
@@ -65,6 +73,35 @@ public class Dispenser extends SubsystemBase {
 
   public void setSpeed(double metersPerSecond) {
     controller.setReference(metersPerSecond, ControlType.kVelocity);
+  }
+
+  public void setAngle(double angle) {
+    angleController.setReference(angle, ControlType.kPosition);
+  }
+
+  public void setAngleTarget(ReefLevel level) {
+    switch (level) {
+      case BASE:
+        setAngle(baseAngleSetpoint);
+        break;
+      case INTAKE:
+        setAngle(intakeAngleSetpoint);
+        break;
+      case LEVEL_3:
+        setAngle(level3AngleSetpoint);
+        break;
+      case LEVEL_4:
+        setAngle(level4AngleSetpoint);
+        break;
+    }
+  }
+
+  public Command setAngleTargetCommand(ReefLevel level) {
+    return runOnce(() -> setAngleTarget(level));
+  }
+
+  public Command setSpeedCommand(double metersPerSecond) {
+    return runOnce(() -> setSpeed(metersPerSecond));
   }
 
   public void stop() {

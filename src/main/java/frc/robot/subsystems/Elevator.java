@@ -21,7 +21,7 @@ import frc.robot.subsystems.AddressableLedStrip.LEDState;
 public class Elevator extends SubsystemBase {
 
   public enum ReefLevel {
-    BASE, LEVEL_3, LEVEL_4
+    BASE, INTAKE, LEVEL_3, LEVEL_4
   }
   /** Creates a new Elevator. */
   private SparkMax lift = new SparkMax(15, MotorType.kBrushless);
@@ -48,6 +48,8 @@ public class Elevator extends SubsystemBase {
   private final double scoringOffset = 0.1;
 
   private final double baseSetpoint = baseHeight;
+  private final double intakeSetpoint = 0.5 + heightOffset;
+
   private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
   private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
 
@@ -91,7 +93,7 @@ public class Elevator extends SubsystemBase {
     if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getPosition() - baseSetpoint) < 0.1) {
       disablePID();
     }
-    
+
     if(dispenser.hasCoral()) {
       leds.setState(LEDState.GREEN);
     } else {
@@ -118,14 +120,14 @@ public class Elevator extends SubsystemBase {
       case BASE:
         setHeight(baseSetpoint);
         break;
+      case INTAKE:
+        setHeight(intakeSetpoint);
+        break;
       case LEVEL_3:
         setHeight(level3Setpoint);
         break;
       case LEVEL_4:
         setHeight(level4Setpoint);
-        break;
-    
-      default:
         break;
     }
   }
