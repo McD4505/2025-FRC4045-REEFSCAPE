@@ -14,6 +14,7 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.AddressableLedStrip.LEDState;
@@ -43,12 +44,12 @@ public class Elevator extends SubsystemBase {
 
   private final double baseHeight = 0.03;
   private final double level3Height = 1.21;
-  private final double level4Height = 1.83;
+  private final double level4Height = 1.95;
 
   private final double scoringOffset = 0.1;
 
   private final double baseSetpoint = baseHeight;
-  private final double intakeSetpoint = 0.5 + heightOffset;
+  private final double intakeSetpoint = 0.3 + heightOffset;
 
   private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
   private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
@@ -74,9 +75,10 @@ public class Elevator extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-      .p(0.3)
+      .p(2)
       .i(0)
-      .d(0);
+      .d(0)
+      .outputRange(-0.2, 0.5);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -90,7 +92,7 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getPosition() - baseSetpoint) < 0.1) {
+    if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getPosition() - baseSetpoint) < 0.3) {
       disablePID();
     }
 
@@ -133,6 +135,9 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command setTargetCommand(ReefLevel level) {
-    return runOnce(() -> setTarget(level));
+    return runOnce(() -> {
+      setTarget(level);
+      dispenser.setAngleTarget(level);
+    });
   }
 }

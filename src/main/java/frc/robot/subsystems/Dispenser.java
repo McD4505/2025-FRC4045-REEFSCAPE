@@ -8,19 +8,21 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ReefLevel;
 
 public class Dispenser extends SubsystemBase {
-  private SparkMax dispenser = new SparkMax(3, MotorType.kBrushless);
-  private SparkMax angleMotor = new SparkMax(4, MotorType.kBrushless);
+  private SparkMax dispenser = new SparkMax(4, MotorType.kBrushless);
+  private SparkMax angleMotor = new SparkMax(3, MotorType.kBrushless);
 
   private CoralSensor coralSensor = new CoralSensor();
 
@@ -30,10 +32,12 @@ public class Dispenser extends SubsystemBase {
   private final double wheelRadius = Units.inchesToMeters(2);
   private final double conversionFactor = 2 * Math.PI * wheelRadius;
 
-  private final double angleConversionFactor = 360;  // degrees/rot_motor
+  private final double angleGearRatio = 9/1;
+
+  private final double angleConversionFactor = 360 / angleGearRatio;  // degrees/rot_motor
 
   private final double baseAngleSetpoint = 0;
-  private final double intakeAngleSetpoint = 30;
+  private final double intakeAngleSetpoint = 40;
   private final double level3AngleSetpoint = 30;
   private final double level4AngleSetpoint = 60;
 
@@ -68,6 +72,11 @@ public class Dispenser extends SubsystemBase {
       .positionConversionFactor(angleConversionFactor)
       .velocityConversionFactor(angleConversionFactor);
 
+    config.closedLoop
+    .p(0.01)
+    .i(0)
+    .d(0);
+
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
@@ -77,6 +86,10 @@ public class Dispenser extends SubsystemBase {
 
   public void setAngle(double angle) {
     angleController.setReference(angle, ControlType.kPosition);
+  }
+
+  public RelativeEncoder getEncoder() {
+    return angleMotor.getEncoder();
   }
 
   public void setAngleTarget(ReefLevel level) {
@@ -115,5 +128,7 @@ public class Dispenser extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    SmartDashboard.putNumber("angle encoder", getEncoder().getPosition());
+    SmartDashboard.putNumber("angle velocity", getEncoder().getVelocity());
   }
 }
