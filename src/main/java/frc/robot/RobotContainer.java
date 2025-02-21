@@ -60,7 +60,7 @@ public class RobotContainer {
 
         joystick.povDown().onTrue(new InstantCommand(() -> Vision.targetStation(drivetrain)));
         
-        joystick.povUp().whileTrue(new InstantCommand(() -> drivetrain.pathfindToRobotTarget().schedule()));
+        joystick.povUp().whileTrue(drivetrain.pathfindToRobotTarget());
 
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
@@ -77,6 +77,11 @@ public class RobotContainer {
         joystick.b().onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_4));
         joystick.x().onTrue(elevator.setTargetCommand(ReefLevel.BASE));
         joystick.y().onTrue(elevator.setTargetCommand(ReefLevel.INTAKE));
+
+        joystick.rightBumper().onTrue(elevator.setDispenserSpeed(1));
+        joystick.rightBumper().onFalse(elevator.setDispenserSpeed(0));
+
+        joystick.leftTrigger().onTrue(elevator.zeroAngleMotor());
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))

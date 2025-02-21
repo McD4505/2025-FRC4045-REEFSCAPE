@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -28,6 +29,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -328,9 +330,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 constraints,
                 0.0 // Goal end velocity in meters/sec
         );
-        // DriverStation.reportWarning("please help me", false);
     
-        return pathfindingCommand;
+        return Commands.defer(() -> pathfindingCommand, Set.of(this));
     }
     
     public Command pathfindToRobotTarget() {

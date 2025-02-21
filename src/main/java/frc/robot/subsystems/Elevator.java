@@ -14,7 +14,6 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.AddressableLedStrip.LEDState;
@@ -43,13 +42,13 @@ public class Elevator extends SubsystemBase {
   private final double heightOffset = -0.05;
 
   private final double baseHeight = 0.03;
-  private final double level3Height = 1.21;
+  private final double level3Height = 1.18;
   private final double level4Height = 1.95;
 
-  private final double scoringOffset = 0.1;
+  private final double scoringOffset = 0.0;
 
   private final double baseSetpoint = baseHeight;
-  private final double intakeSetpoint = 0.3 + heightOffset;
+  private final double intakeSetpoint = 0.1 + heightOffset;
 
   private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
   private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
@@ -83,6 +82,12 @@ public class Elevator extends SubsystemBase {
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
+  public Command setDispenserSpeed(double mps) {
+    return runOnce(() -> {
+      dispenser.setSpeed(mps);
+    });
+  }
+
   private void configureLiftFollower() {
     SparkMaxConfig config = new SparkMaxConfig();
     config.follow(lift, false);
@@ -101,6 +106,18 @@ public class Elevator extends SubsystemBase {
     } else {
       leds.setState(LEDState.RED);
     }
+
+    if(dispenser.isLimitSwitchPressed() && isElevatorAtBase() && level == ReefLevel.BASE) {
+      zeroAngleMotor();
+    }
+  }
+
+  public boolean isElevatorAtBase() {
+    return Math.abs(getHeight()) < 0.03;
+  }
+
+  public double getHeight() {
+    return lift.getEncoder().getPosition();
   }
 
   public void setHeight(double height) {
@@ -139,5 +156,15 @@ public class Elevator extends SubsystemBase {
       setTarget(level);
       dispenser.setAngleTarget(level);
     });
+  }
+
+  public Command zeroAngleMotor() {
+    return runOnce(() -> {
+      dispenser.zeroAngleMotor();
+    });
+  }
+
+  public Dispenser getDispenser() {
+    return dispenser;
   }
 }

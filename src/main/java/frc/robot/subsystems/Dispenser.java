@@ -15,6 +15,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -34,34 +35,31 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleGearRatio = 9/1;
 
-  private final double angleConversionFactor = 360 / angleGearRatio;  // degrees/rot_motor
+  private final double angleConversionFactor = 360 / angleGearRatio * 1.75 * 38.3/35;  // degrees/rot_motor
 
-  private final double baseAngleSetpoint = 0;
-  private final double intakeAngleSetpoint = 40;
-  private final double level3AngleSetpoint = 30;
-  private final double level4AngleSetpoint = 60;
+  private final double angleOffset = 0;
+
+  private final double baseAngleSetpoint = 35 + angleOffset;
+  private final double intakeAngleSetpoint = 35 + angleOffset;
+  private final double level3AngleSetpoint = 30 + angleOffset;
+  private final double level4AngleSetpoint = 60 + angleOffset;
+
+  DigitalInput limitSwitch = new DigitalInput(1);
 
   /** Creates a new Dispenser. */
   public Dispenser() {
     configureDispenser();
     configureAngleMotor();
+
+    zeroAngleMotor();
+    setAngleTarget(ReefLevel.BASE);
+  }
+
+  public void zeroAngleMotor() {
+    angleMotor.getEncoder().setPosition(0);
   }
 
   private void configureDispenser() {
-    SparkMaxConfig config = new SparkMaxConfig();
-
-    config
-      .inverted(false)
-      .idleMode(IdleMode.kBrake);
-
-    config.encoder
-      .positionConversionFactor(conversionFactor)
-      .velocityConversionFactor(conversionFactor);
-
-    dispenser.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-  }
-
-  private void configureAngleMotor() {
     SparkMaxConfig config = new SparkMaxConfig();
 
     config
@@ -69,19 +67,38 @@ public class Dispenser extends SubsystemBase {
       .idleMode(IdleMode.kBrake);
 
     config.encoder
+      .positionConversionFactor(conversionFactor)
+      .velocityConversionFactor(conversionFactor);
+
+    config.closedLoop
+    .p(0.1)
+    .i(0)
+    .d(0);
+
+    dispenser.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+  }
+
+  public void configureAngleMotor() {
+    SparkMaxConfig config = new SparkMaxConfig();
+
+    config
+      .inverted(false)
+      .idleMode(IdleMode.kBrake);
+
+    config.encoder
       .positionConversionFactor(angleConversionFactor)
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-    .p(0.01)
+    .p(0.005)
     .i(0)
     .d(0);
 
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
 
-  public void setSpeed(double metersPerSecond) {
-    controller.setReference(metersPerSecond, ControlType.kVelocity);
+  public void setSpeed(double percent) {
+    controller.setReference(percent, ControlType.kDutyCycle);
   }
 
   public void setAngle(double angle) {
@@ -125,10 +142,15 @@ public class Dispenser extends SubsystemBase {
     return coralSensor.hasCoral();
   }
 
+  public boolean isLimitSwitchPressed() {
+    return !limitSwitch.get();
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("angle encoder", getEncoder().getPosition());
     SmartDashboard.putNumber("angle velocity", getEncoder().getVelocity());
+    SmartDashboard.putBoolean("limit switch", isLimitSwitchPressed());
   }
 }
