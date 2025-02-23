@@ -39,19 +39,17 @@ public class Elevator extends SubsystemBase {
   private final double elevatorToChain = 3/1;
   private final double conversionFactor = elevatorToChain * sprocketCircumfrence / gearRatio;  // meters/rot_motor
 
-  private final double heightOffset = -0.05;
-
   private final double baseHeight = 0.03;
-  private final double level3Height = 1.18;
-  private final double level4Height = 1.95;
+  private final double level3Height = 1.08;
+  private final double level4Height = 1.90;
 
   private final double scoringOffset = 0.0;
 
   private final double baseSetpoint = baseHeight;
-  private final double intakeSetpoint = 0.1 + heightOffset;
+  private final double intakeSetpoint = baseHeight;
 
-  private final double level3Setpoint = level3Height + heightOffset + scoringOffset;
-  private final double level4Setpoint = level4Height + heightOffset + scoringOffset;
+  private final double level3Setpoint = level3Height + scoringOffset;
+  private final double level4Setpoint = level4Height + scoringOffset;
 
   private ReefLevel level = ReefLevel.BASE;
 
@@ -97,7 +95,7 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getPosition() - baseSetpoint) < 0.3) {
+    if(level == ReefLevel.BASE && Math.abs(getHeight() - baseSetpoint) < 0.1) {
       disablePID();
     }
 
@@ -107,8 +105,8 @@ public class Elevator extends SubsystemBase {
       leds.setState(LEDState.RED);
     }
 
-    if(dispenser.isLimitSwitchPressed() && isElevatorAtBase() && level == ReefLevel.BASE) {
-      zeroAngleMotor();
+    if(dispenser.isLimitSwitchPressed() && level == ReefLevel.BASE) {
+      dispenser.zeroAngleMotor();
     }
   }
 
@@ -158,7 +156,7 @@ public class Elevator extends SubsystemBase {
     });
   }
 
-  public Command zeroAngleMotor() {
+  public Command zeroAngleMotorCommand() {
     return runOnce(() -> {
       dispenser.zeroAngleMotor();
     });

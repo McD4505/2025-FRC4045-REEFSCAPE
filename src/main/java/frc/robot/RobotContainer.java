@@ -81,7 +81,7 @@ public class RobotContainer {
         joystick.rightBumper().onTrue(elevator.setDispenserSpeed(1));
         joystick.rightBumper().onFalse(elevator.setDispenserSpeed(0));
 
-        joystick.leftTrigger().onTrue(elevator.zeroAngleMotor());
+        joystick.leftTrigger().onTrue(elevator.zeroAngleMotorCommand());
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))

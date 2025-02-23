@@ -35,7 +35,7 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleGearRatio = 9/1;
 
-  private final double angleConversionFactor = 360 / angleGearRatio * 1.75 * 38.3/35;  // degrees/rot_motor
+  private final double angleConversionFactor = 360 / angleGearRatio * 1.25;  // degrees/rot_motor
 
   private final double angleOffset = 0;
 
@@ -44,7 +44,7 @@ public class Dispenser extends SubsystemBase {
   private final double level3AngleSetpoint = 30 + angleOffset;
   private final double level4AngleSetpoint = 60 + angleOffset;
 
-  DigitalInput limitSwitch = new DigitalInput(1);
+  DigitalInput limitSwitch = new DigitalInput(9);
 
   /** Creates a new Dispenser. */
   public Dispenser() {
@@ -71,7 +71,7 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-    .p(0.1)
+    .p(0.4)
     .i(0)
     .d(0);
 
@@ -90,8 +90,8 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-    .p(0.005)
-    .i(0)
+    .p(0.003)
+    .i(0.00003)
     .d(0);
 
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);

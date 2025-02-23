@@ -30,7 +30,7 @@ public class AddressableLedStrip extends SubsystemBase {
 		ORANGE,
 		FLAME,
 		AMERICAN,
-		ALLAINCE,
+		ALLIANCE,
 		OFF
 	}
 
@@ -59,6 +59,7 @@ public class AddressableLedStrip extends SubsystemBase {
 	public void periodic() {
 
 		if (DriverStation.isDisabled()) {
+			// solid(new Color(255, 25, 0));
 			rainbow();
 		} else {
 
@@ -90,7 +91,7 @@ public class AddressableLedStrip extends SubsystemBase {
 					flame();
 					break;
 
-				case ALLAINCE:
+				case ALLIANCE:
 					var alliance = DriverStation.getAlliance();
 					if (alliance.isPresent()) {
 						if (alliance.get() == Alliance.Red) {

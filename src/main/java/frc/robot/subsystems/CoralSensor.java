@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class CoralSensor extends SubsystemBase {
   /** Creates a new CoralSensor. */
-  private static final int coralSensorPort = 0;
+  private static final int coralSensorPort = 8;
   private DigitalInput coralSensor;
   public CoralSensor() {
     this.coralSensor = new DigitalInput(coralSensorPort);
