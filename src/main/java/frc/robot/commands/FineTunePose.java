@@ -44,9 +44,9 @@ public class FineTunePose extends Command {
 
     xController.setTolerance(0.03);
     yController.setTolerance(0.03);
-    thetaController.setTolerance(5);
+    thetaController.setTolerance(2);
 
-    thetaController.enableContinuousInput(-180, 180);
+    thetaController.enableContinuousInput(0, 360);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -54,10 +54,18 @@ public class FineTunePose extends Command {
   public void execute() {
     Pose2d currentPose = drivetrain.getState().Pose;
 
+    // calculate x and y speeds
     double xSpeed = xController.calculate(currentPose.getX());
     double ySpeed = yController.calculate(currentPose.getY());
-    double thetaSpeed = thetaController.calculate(currentPose.getRotation().getDegrees());
+
+    // normalize pose angle to be between 0 and 360
+    double normalizedAngle = currentPose.getRotation().getDegrees() % 360;
+    while(normalizedAngle < 0) normalizedAngle += 360;
     
+    // calculate theta speed
+    double thetaSpeed = thetaController.calculate(normalizedAngle);
+    
+    // drive with calculated speeds
     drivetrain.applyRequest(() ->
                 drive.withVelocityX(xSpeed)
                     .withVelocityY(ySpeed)
