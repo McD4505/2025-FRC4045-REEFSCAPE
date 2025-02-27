@@ -39,12 +39,14 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleOffset = 0;
 
-  private final double baseAngleSetpoint = 35 + angleOffset;
-  private final double intakeAngleSetpoint = 35 + angleOffset;
-  private final double level3AngleSetpoint = 30 + angleOffset;
-  private final double level4AngleSetpoint = 60 + angleOffset;
+  private final double angleSetpointBase = 62 + angleOffset;
+  private final double angleSetpointIntake = 40 + angleOffset;
+  private final double angleSetpointLevel2and3 = 30 + angleOffset;
+  private final double angleSetpointLevel4 = 52 + angleOffset;
 
-  DigitalInput limitSwitch = new DigitalInput(9);
+  private DigitalInput limitSwitch = new DigitalInput(9);
+
+  private ReefLevel level = ReefLevel.BASE;
 
   /** Creates a new Dispenser. */
   public Dispenser() {
@@ -90,8 +92,8 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-    .p(0.003)
-    .i(0.00003)
+    .p(0.03)
+    .i(0.0000000001)
     .d(0);
 
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -109,19 +111,28 @@ public class Dispenser extends SubsystemBase {
     return angleMotor.getEncoder();
   }
 
+  /**
+   * sets the angle target based on level
+   * @param level target level
+   */
   public void setAngleTarget(ReefLevel level) {
+    this.level = level;
+
     switch (level) {
       case BASE:
-        setAngle(baseAngleSetpoint);
+        setAngle(angleSetpointBase);
         break;
       case INTAKE:
-        setAngle(intakeAngleSetpoint);
+        setAngle(angleSetpointIntake);
+        break;
+      case LEVEL_2:
+        setAngle(angleSetpointLevel2and3);
         break;
       case LEVEL_3:
-        setAngle(level3AngleSetpoint);
+        setAngle(angleSetpointLevel2and3);
         break;
       case LEVEL_4:
-        setAngle(level4AngleSetpoint);
+        setAngle(angleSetpointLevel4);
         break;
     }
   }
