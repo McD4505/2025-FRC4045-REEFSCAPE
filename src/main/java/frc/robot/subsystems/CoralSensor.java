@@ -12,6 +12,7 @@ public class CoralSensor extends SubsystemBase {
   /** Creates a new CoralSensor. */
   private static final int coralSensorPort = 8;
   private DigitalInput coralSensor;
+  
   public CoralSensor() {
     this.coralSensor = new DigitalInput(coralSensorPort);
   }
