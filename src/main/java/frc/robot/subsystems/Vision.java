@@ -29,6 +29,12 @@ public class Vision extends SubsystemBase {
     }
   }
 
+  /**
+   * Transforms the apriltag pose by a given transform
+   * @param id apriltag id
+   * @param transform transform to apply
+   * @return transformed pose
+   */
   public static Pose2d transformFromTag(int id, Transform2d transform) {
     Pose2d tagPose = getTargetPose(id);
     return tagPose.plus(transform);
@@ -38,17 +44,28 @@ public class Vision extends SubsystemBase {
     return (int) LimelightHelpers.getFiducialID(limelightName);
   }
 
+  /**
+   * Gets the apriltag pose from the field layout
+   * @param id apriltag id
+   * @return apriltag pose
+   */
   public static Pose2d getTargetPose(int id) {
-    if(id <= 0) return new Pose2d();
+    if(id <= 0) return new Pose2d();  // if invalid id, return origin
 
     return fieldLayout.getTagPose(id).get().toPose2d();
   }
 
+  /**
+   * Sets the target pose of the drivetrain to the target branch 
+   * based on currently detected reef apriltag
+   * @param drivetrain drivetrain
+   * @param isLeft true if left branch, false if right branch
+   */
   public static void targetBranch(CommandSwerveDrivetrain drivetrain, boolean isLeft) {
     int tagId = Vision.getCurrentTagId("limelight-two");
 
     int sign = isLeft ? -1 : 1;
-    Translation2d baseTranslation = new Translation2d(0.5, Units.inchesToMeters(sign * 6));
+    Translation2d baseTranslation = new Translation2d(0.55, Units.inchesToMeters(sign * 6 + 14));
 
     Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
 
@@ -56,6 +73,11 @@ public class Vision extends SubsystemBase {
     drivetrain.setTargetPose(targetPose);
   }
 
+  /**
+   * Sets the target pose of the drivetrain to the target station 
+   * based on currently detected reef apriltag
+   * @param drivetrain drivetrain
+   */
   public static void targetStation(CommandSwerveDrivetrain drivetrain) {
     int tagId = Vision.getCurrentTagId("limelight");
 
