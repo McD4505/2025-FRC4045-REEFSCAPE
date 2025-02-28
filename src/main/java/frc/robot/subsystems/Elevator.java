@@ -16,6 +16,7 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.AddressableLedStrip.LEDState;
 
@@ -59,7 +60,11 @@ public class Elevator extends SubsystemBase {
 
   private ReefLevel level = ReefLevel.BASE;
 
-  private AddressableLedStrip leds = new AddressableLedStrip(0, 30);
+  private double heightSetpoint = baseSetpoint;
+
+  private AddressableLedStrip leds = new AddressableLedStrip(0, 60);
+
+  private boolean hasCoral = dispenser.hasCoral();
 
   public Elevator() {
     configureLift();
@@ -81,7 +86,7 @@ public class Elevator extends SubsystemBase {
       .p(2)
       .i(0.000000000004)
       .d(0)
-      .outputRange(-0.15, 0.4);
+      .outputRange(-0.15, 0.5);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
@@ -108,11 +113,17 @@ public class Elevator extends SubsystemBase {
       disablePID();
     }
 
-    // update LEDs
-    if(dispenser.hasCoral()) {
-      leds.setState(LEDState.GREEN);
-    } else {
-      leds.setState(LEDState.RED);
+    // update LEDs if state has changed
+    boolean dispenserHasCoral = dispenser.hasCoral();
+    if(dispenserHasCoral != hasCoral) {
+
+      if(dispenserHasCoral) {
+        leds.setState(LEDState.GREEN);
+      } else {
+        leds.setState(LEDState.RED);
+      }
+
+      hasCoral = dispenserHasCoral;
     }
 
     // zero angle motor if limit switch is pressed
@@ -133,7 +144,34 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setHeight(double height) {
+    heightSetpoint = height;
     elevatorController.setReference(height, ControlType.kPosition);
+  }
+
+  public boolean elevatorAndDispenserAtSetpoint() {
+    return atSetpoint() && getDispenser().atSetpoint();
+  }
+
+  /**
+   * Command sequence that sets the elevator target and ends when it reaches its setpoint
+   * @param level target level
+   * @return the command to be scheduled
+   */
+  public Command waitToReachSetpointCommand() {
+    return Commands.waitUntil(this::elevatorAndDispenserAtSetpoint);
+  }
+
+  /**
+   * Command sequence that sets elevator target, waits for it to reach setpoint, and dispenses coral
+   * @param level target level
+   * @return the command to be scheduled
+   */
+  public Command score(ReefLevel level) {
+    return Commands.sequence(
+      setTargetCommand(level),
+      waitToReachSetpointCommand(),
+      dispenser.dispenseCommand()
+    );
   }
 
   public void disablePID() {
@@ -142,6 +180,12 @@ public class Elevator extends SubsystemBase {
 
   public void resetPosition() {
     lift.getEncoder().setPosition(baseHeight);
+  }
+
+  public Command resetLiftCommand() {
+    return runOnce(() -> {
+      resetElevator();
+    });
   }
 
   /**
@@ -203,8 +247,12 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putBoolean("avoid intake", shouldAvoidIntake());
   }
 
+  public boolean atSetpoint() {
+    return Math.abs(getHeight() - heightSetpoint) < 0.02;
+  }
+
   public void resetElevator() {
-    if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getVelocity()) < 0.001) {
+    if(level == ReefLevel.BASE && Math.abs(lift.getEncoder().getVelocity()) < 0.002) {
       resetPosition();
     }
   }

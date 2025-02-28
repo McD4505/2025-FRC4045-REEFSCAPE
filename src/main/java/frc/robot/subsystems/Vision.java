@@ -65,7 +65,7 @@ public class Vision extends SubsystemBase {
     int tagId = Vision.getCurrentTagId("limelight-two");
 
     int sign = isLeft ? -1 : 1;
-    Translation2d baseTranslation = new Translation2d(0.55, Units.inchesToMeters(sign * 6 + 14));
+    Translation2d baseTranslation = new Translation2d(0.55, Units.inchesToMeters(sign * 6 + 16));
 
     Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
 
@@ -81,9 +81,9 @@ public class Vision extends SubsystemBase {
   public static void targetStation(CommandSwerveDrivetrain drivetrain) {
     int tagId = Vision.getCurrentTagId("limelight");
 
-    Translation2d baseTranslation = new Translation2d(0.5, 0);
+    Translation2d baseTranslation = new Translation2d(0.44, -0.2);
 
-    Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
+    Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
 
     Pose2d targetPose = Vision.transformFromTag(tagId, transform);
     drivetrain.setTargetPose(targetPose);

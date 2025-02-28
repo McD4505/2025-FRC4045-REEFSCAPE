@@ -229,7 +229,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 ),
                 new PPHolonomicDriveController(
                     // PID constants for translation
-                    new PIDConstants(10, 0, 0),
+                    new PIDConstants(9, 0, 0),  // 10, 0, 0
                     // PID constants for rotation
                     new PIDConstants(7, 0, 0)
                 ),
@@ -321,8 +321,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Command pathfindToPose(Pose2d pose) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                3.0, 2.0,  // 4 m/s^2
-                Units.degreesToRadians(540), Units.degreesToRadians(720));
+                3.0, 1.5,  // 4 m/s^2
+                Units.degreesToRadians(540/2), Units.degreesToRadians(720));
     
         // Since AutoBuilder is configured, we can use it to build pathfinding commands
         Command pathfindingCommand = AutoBuilder.pathfindToPose(
@@ -331,7 +331,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 0.0 // Goal end velocity in meters/sec
         );
     
-        return Commands.defer(() -> pathfindingCommand, Set.of(this));
+        return pathfindingCommand;
     }
     
     public Command pathfindToRobotTarget() {

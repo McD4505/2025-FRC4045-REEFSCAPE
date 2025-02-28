@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -16,9 +17,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.Dispenser;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.Elevator.ReefLevel;
@@ -48,8 +49,12 @@ public class RobotContainer {
 
     private Elevator elevator = new Elevator();
 
+    private Dispenser dispenser = elevator.getDispenser();
+
     public RobotContainer() {
         configureBindings();
+
+        NamedCommands.registerCommand("waitForCoral", dispenser.waitForCoralCommand());
 
         SmartDashboard.putData("auto chooser", m_Chooser);
     }
@@ -86,7 +91,7 @@ public class RobotContainer {
         joystick.rightTrigger().onTrue(elevator.setDispenserSpeedCommand(-0.75));
         joystick.rightTrigger().onFalse(elevator.setDispenserSpeedCommand(0));
 
-        joystick.leftTrigger().onTrue(elevator.zeroAngleMotorCommand());
+        joystick.leftTrigger().onTrue(elevator.resetLiftCommand());
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))

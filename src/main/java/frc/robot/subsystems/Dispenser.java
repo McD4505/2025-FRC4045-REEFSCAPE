@@ -18,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ReefLevel;
 
@@ -40,13 +41,15 @@ public class Dispenser extends SubsystemBase {
   private final double angleOffset = 0;
 
   private final double angleSetpointBase = 62 + angleOffset;
-  private final double angleSetpointIntake = 40 + angleOffset;
+  private final double angleSetpointIntake = 38 + angleOffset;
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
   private final double angleSetpointLevel4 = 52 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
 
   private ReefLevel level = ReefLevel.BASE;
+
+  private double angleSetpoint = angleSetpointBase;
 
   /** Creates a new Dispenser. */
   public Dispenser() {
@@ -104,6 +107,7 @@ public class Dispenser extends SubsystemBase {
   }
 
   public void setAngle(double angle) {
+    angleSetpoint = angle;
     angleController.setReference(angle, ControlType.kPosition);
   }
 
@@ -141,8 +145,8 @@ public class Dispenser extends SubsystemBase {
     return runOnce(() -> setAngleTarget(level));
   }
 
-  public Command setSpeedCommand(double metersPerSecond) {
-    return runOnce(() -> setSpeed(metersPerSecond));
+  public Command setSpeedCommand(double percent) {
+    return runOnce(() -> setSpeed(percent));
   }
 
   public void stop() {
@@ -155,6 +159,35 @@ public class Dispenser extends SubsystemBase {
 
   public boolean isLimitSwitchPressed() {
     return !limitSwitch.get();
+  }
+
+  public double getAngle() {
+    return angleMotor.getEncoder().getPosition();
+  }
+
+  public boolean atSetpoint() {
+    return Math.abs(getAngle() - angleSetpoint) < 1;
+  }
+
+  /**
+   * Command that waits until coral is detected
+   * @return the command to be scheduled
+   */
+  public Command waitForCoralCommand() {
+    return Commands.waitUntil(this::hasCoral);
+  }
+
+  /**
+   * Command that dispenses coral
+   * @return the command to be scheduled
+   */
+  public Command dispenseCommand() {
+    return Commands.sequence(
+      setSpeedCommand(1),
+      Commands.waitUntil(() -> !hasCoral()),
+      Commands.waitSeconds(2),
+      setSpeedCommand(0)
+    );
   }
 
   @Override
