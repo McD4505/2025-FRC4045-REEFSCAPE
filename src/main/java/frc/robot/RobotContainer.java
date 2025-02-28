@@ -92,6 +92,9 @@ public class RobotContainer {
         joystick.rightTrigger().onFalse(elevator.setDispenserSpeedCommand(0));
 
         joystick.leftTrigger().onTrue(elevator.resetLiftCommand());
+
+        joystick.leftStick().onTrue(drivetrain.getDefaultCommand());  // interrupt drivetrain command; useful to cancel pathfinding
+        
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
