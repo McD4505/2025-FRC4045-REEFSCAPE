@@ -25,6 +25,8 @@ public class AddressableLedStrip extends SubsystemBase {
 		RAINBOW,
 		GREEN,
 		BLUE,
+		PURPLE,
+		CYAN,
 		RED,
 		WHITE,
 		ORANGE,
@@ -74,6 +76,14 @@ public class AddressableLedStrip extends SubsystemBase {
 
 				case BLUE:
 					solid(Color.kBlue);
+					break;
+
+				case PURPLE:
+					solid(Color.kPurple);
+					break;
+
+				case CYAN:
+					solid(Color.kCyan);
 					break;
 
 				case RED:

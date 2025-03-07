@@ -4,31 +4,37 @@
 
 package frc.robot.commands;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class FineTunePose extends Command {
+public class DriveToTargetPose extends Command {
   private final CommandSwerveDrivetrain drivetrain;
 
-  private final PIDController xController = new PIDController(0.1, 0, 0);
-  private final PIDController yController = new PIDController(0.1, 0, 0);
+  private final PIDController xController = new PIDController(4, 0, 0);
+  private final PIDController yController = new PIDController(4, 0, 0);
   private final PIDController thetaController = new PIDController(0.1, 0, 0);
 
   private Pose2d targetPose = new Pose2d();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
-            .withDriveRequestType(DriveRequestType.Velocity);
+            .withDriveRequestType(DriveRequestType.Velocity)
+            .withForwardPerspective(SwerveRequest.ForwardPerspectiveValue.BlueAlliance);
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
-  /** Creates a new FineTunePose. */
-  public FineTunePose(CommandSwerveDrivetrain drivetrain) {
+  /** Creates a new DriveToTargetPose. */
+  public DriveToTargetPose(CommandSwerveDrivetrain drivetrain) {
     this.drivetrain = drivetrain;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
@@ -37,14 +43,16 @@ public class FineTunePose extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    LimelightHelpers.setLEDMode_ForceOn("limelight-two");
+
     targetPose = drivetrain.getTargetPose();
     xController.setSetpoint(targetPose.getX());
     yController.setSetpoint(targetPose.getY());
     thetaController.setSetpoint(targetPose.getRotation().getDegrees());
 
-    xController.setTolerance(0.03);
-    yController.setTolerance(0.03);
-    thetaController.setTolerance(2);
+    xController.setTolerance(0.01);
+    yController.setTolerance(0.01);
+    thetaController.setTolerance(0.2);
 
     thetaController.enableContinuousInput(0, 360);
   }
@@ -77,6 +85,8 @@ public class FineTunePose extends Command {
   @Override
   public void end(boolean interrupted) {
     drivetrain.applyRequest(() -> brake).execute();
+    
+    LimelightHelpers.setLEDMode_ForceOff("limelight-two");
   }
 
   // Returns true when the command should end.

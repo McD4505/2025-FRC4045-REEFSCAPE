@@ -65,7 +65,8 @@ public class Vision extends SubsystemBase {
     int tagId = Vision.getCurrentTagId("limelight-two");
 
     int sign = isLeft ? -1 : 1;
-    Translation2d baseTranslation = new Translation2d(0.55, Units.inchesToMeters(sign * 6 + 16));
+    double offset = isLeft ? 6 : 7;
+    Translation2d baseTranslation = new Translation2d(0.47, Units.inchesToMeters(sign * offset + 16));
 
     Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
 

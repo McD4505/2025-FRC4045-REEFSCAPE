@@ -11,6 +11,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.MAXMotionConfig.MAXMotionPositionMode;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.util.Units;
@@ -23,7 +24,7 @@ import frc.robot.subsystems.AddressableLedStrip.LEDState;
 public class Elevator extends SubsystemBase {
 
   public enum ReefLevel {
-    BASE, INTAKE, LEVEL_2, LEVEL_3, LEVEL_4
+    STOWED, BASE, INTAKE, LEVEL_2, LEVEL_3, LEVEL_4
   }
   /** Creates a new Elevator. */
   private SparkMax lift = new SparkMax(15, MotorType.kBrushless);
@@ -48,8 +49,8 @@ public class Elevator extends SubsystemBase {
 
   private final double clearIntakeHeight = Units.inchesToMeters(27);
 
-  private final double scoringOffsetL23 = 0.15;  // L2 and L3 have the same angle
-  private final double scoringOffsetL4 = 0.28;  // L4 has a different angle
+  private final double scoringOffsetL23 = 0.12;  // L2 and L3 have the same angle
+  private final double scoringOffsetL4 = 0.23;  // L4 has a different angle
 
   private final double baseSetpoint = baseHeight;
   private final double intakeSetpoint = baseHeight;
@@ -84,13 +85,19 @@ public class Elevator extends SubsystemBase {
 
     config.closedLoop
       .p(2)
-      .i(0.000000000004)
+      .i(0.0001)
       .d(0)
-      .outputRange(-0.15, 0.5);
+      .outputRange(-0.15, 1);
+    
+    config.closedLoop.maxMotion
+      .maxAcceleration(1)
+      .maxVelocity(2)
+      .allowedClosedLoopError(0.01)
+      .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-    lift.getEncoder().setPosition(baseHeight);
+ 
+    resetPosition();
   }
 
   public Command setDispenserSpeedCommand(double mps) {
@@ -131,8 +138,19 @@ public class Elevator extends SubsystemBase {
       dispenser.zeroAngleMotor();
     }
 
-    // update dispenser state (accounting for stowing)
+    // update dispenser state (avoiding intake while going up)
     updateDispenserState();
+
+    // update elevator state (waiting for dispenser before extending)
+    // updateElevatorState();
+  }
+
+  public void setLEDIntakeMode() {
+    if(dispenser.hasCoral()) {
+      leds.setState(LEDState.GREEN);
+    } else {
+      leds.setState(LEDState.RED);
+    }
   }
 
   public boolean isElevatorAtBase() {
@@ -158,7 +176,7 @@ public class Elevator extends SubsystemBase {
    * @return the command to be scheduled
    */
   public Command waitToReachSetpointCommand() {
-    return Commands.waitUntil(this::elevatorAndDispenserAtSetpoint);
+    return Commands.waitUntil(() -> elevatorAndDispenserAtSetpoint());
   }
 
   /**
@@ -168,10 +186,22 @@ public class Elevator extends SubsystemBase {
    */
   public Command score(ReefLevel level) {
     return Commands.sequence(
+      Commands.waitSeconds(1),
       setTargetCommand(level),
-      waitToReachSetpointCommand(),
-      dispenser.dispenseCommand()
+      waitToReachSetpointCommand().withTimeout(5),
+      dispenser.dispenseCommand().withTimeout(5),
+      setTargetCommand(ReefLevel.BASE),
+      waitToReachSetpointCommand().withTimeout(5)
     );
+  }
+
+  private double getElevatorHeightPercentage() {
+    return (getHeight() - baseHeight) / (level4Height - baseHeight);
+  }
+
+  public double getMaxSpeedFactor() {
+    if(getHeight() < 0.1) return 1;
+    return Math.max(0.1, 1 - getElevatorHeightPercentage());
   }
 
   public void disablePID() {
@@ -196,19 +226,27 @@ public class Elevator extends SubsystemBase {
     this.level = level;
 
     switch (level) {
+      case STOWED:
+        setHeight(baseSetpoint);
+        break;
       case BASE:
+        leds.setState(LEDState.RAINBOW);
         setHeight(baseSetpoint);
         break;
       case INTAKE:
+        setLEDIntakeMode();
         setHeight(intakeSetpoint);
         break;
       case LEVEL_2:
+        leds.setState(LEDState.CYAN);
         setHeight(level2Setpoint);
         break;
       case LEVEL_3:
+        leds.setState(LEDState.ORANGE);
         setHeight(level3Setpoint);
         break;
       case LEVEL_4:
+        leds.setState(LEDState.PURPLE);
         setHeight(level4Setpoint);
         break;
     }
@@ -223,15 +261,16 @@ public class Elevator extends SubsystemBase {
    * @return true if dispenser should be stowed; false otherwise
    */
   private boolean shouldAvoidIntake() {
-    return level != ReefLevel.INTAKE && !isClearOfIntake();
+    return level != ReefLevel.INTAKE && !isClearOfIntake() && level != ReefLevel.STOWED;
   }
 
   private boolean shouldStowDispenser() {
     // if elevator is far from target level, stow dispenser
-    boolean stowL4 = level == ReefLevel.LEVEL_4 && getHeight() < level4Setpoint - 0.05;
-    boolean stowL3 = level == ReefLevel.LEVEL_3 && getHeight() < level3Setpoint - 0.05;
+    // boolean stowL4 = level == ReefLevel.LEVEL_4 && getHeight() < level4Setpoint - 0.05;
+    // boolean stowL3 = level == ReefLevel.LEVEL_3 && getHeight() < level3Setpoint - 0.05;
 
-    return isClearOfIntake() && (stowL4 || stowL3);
+    // return isClearOfIntake() && (stowL4 || stowL3);
+    return level == ReefLevel.STOWED && isElevatorAtBase();
   }
 
   /** 
@@ -241,10 +280,22 @@ public class Elevator extends SubsystemBase {
   public void updateDispenserState() {
     if(shouldAvoidIntake()) {
       dispenser.setAngleTarget(ReefLevel.BASE);
+
+    // } else if(shouldStowDispenser()) {
+    //   dispenser.setAngleTarget(ReefLevel.STOWED);
+
     } else {
       dispenser.setAngleTarget(level);
     }
     SmartDashboard.putBoolean("avoid intake", shouldAvoidIntake());
+  }
+
+  public void updateElevatorState() {
+    if(shouldAvoidIntake() && !dispenser.atSetpoint()) {
+      setTarget(ReefLevel.BASE);
+    } else {
+      setTarget(level);
+    }
   }
 
   public boolean atSetpoint() {

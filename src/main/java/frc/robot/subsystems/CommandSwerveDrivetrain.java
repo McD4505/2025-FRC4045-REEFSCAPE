@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.Set;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.SignalLogger;
@@ -29,7 +28,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -229,7 +227,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 ),
                 new PPHolonomicDriveController(
                     // PID constants for translation
-                    new PIDConstants(9, 0, 0),  // 10, 0, 0
+                    new PIDConstants(10, 0, 0),
                     // PID constants for rotation
                     new PIDConstants(7, 0, 0)
                 ),
@@ -275,6 +273,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return m_sysIdRoutineToApply.dynamic(direction);
     }
 
+    public Command recalculateOperatorPerspectiveCommand() {
+        return runOnce(() -> {m_hasAppliedOperatorPerspective = false;});
+    }
+    
     @Override
     public void periodic() {
         /*
@@ -321,7 +323,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public Command pathfindToPose(Pose2d pose) {
         // Create the constraints to use while pathfinding
         PathConstraints constraints = new PathConstraints(
-                3.0, 1.5,  // 4 m/s^2
+                3.0, 2,  // 4 m/s^2
                 Units.degreesToRadians(540/2), Units.degreesToRadians(720));
     
         // Since AutoBuilder is configured, we can use it to build pathfinding commands

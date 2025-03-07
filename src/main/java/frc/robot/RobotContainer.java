@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.commands.DriveToTargetPose;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.Dispenser;
@@ -57,6 +58,12 @@ public class RobotContainer {
         NamedCommands.registerCommand("waitForCoral", dispenser.waitForCoralCommand());
 
         SmartDashboard.putData("auto chooser", m_Chooser);
+
+        m_Chooser.addOption("target, pathfind, score", 
+                new InstantCommand(() -> Vision.targetBranch(drivetrain, false))
+                .andThen(new DriveToTargetPose(drivetrain))
+                .andThen(elevator.score(ReefLevel.LEVEL_4))
+        );
     }
 
     private void configureBindings() {
@@ -65,16 +72,17 @@ public class RobotContainer {
 
         joystick.povDown().onTrue(new InstantCommand(() -> Vision.targetStation(drivetrain)));
         
-        joystick.povUp().onTrue(new InstantCommand(() -> drivetrain.pathfindToRobotTarget().schedule()));
+        // joystick.povUp().onTrue(new InstantCommand(() -> drivetrain.pathfindToRobotTarget().schedule()));
+        joystick.povUp().onTrue(new DriveToTargetPose(drivetrain));
 
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-joystick.getLeftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-joystick.getLeftY() * MaxSpeed * elevator.getMaxSpeedFactor()) // Drive forward with negative Y (forward)
+                    .withVelocityY(-joystick.getLeftX() * MaxSpeed * elevator.getMaxSpeedFactor()) // Drive left with negative X (left)
+                    .withRotationalRate(-joystick.getRightX() * MaxAngularRate * elevator.getMaxSpeedFactor()) // Drive counterclockwise with negative X (left)
             )
         );
 
@@ -95,6 +103,8 @@ public class RobotContainer {
 
         joystick.leftStick().onTrue(drivetrain.getDefaultCommand());  // interrupt drivetrain command; useful to cancel pathfinding
         
+        joystick.rightStick().onTrue(new InstantCommand(() -> LimelightHelpers.setLEDMode_ForceOn("limelight-two")));
+        joystick.rightStick().onFalse(new InstantCommand(() -> LimelightHelpers.setLEDMode_ForceOff("limelight-two")));
         // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
         // joystick.b().whileTrue(drivetrain.applyRequest(() ->
         //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
@@ -108,7 +118,8 @@ public class RobotContainer {
         joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
-        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric()));
+        joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
+        .andThen(drivetrain.recalculateOperatorPerspectiveCommand()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
     }

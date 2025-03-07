@@ -34,14 +34,15 @@ public class Dispenser extends SubsystemBase {
   private final double wheelRadius = Units.inchesToMeters(2);
   private final double conversionFactor = 2 * Math.PI * wheelRadius;
 
-  private final double angleGearRatio = 9/1;
+  private final double angleGearRatio = 15/1;
 
   private final double angleConversionFactor = 360 / angleGearRatio * 1.25;  // degrees/rot_motor
 
-  private final double angleOffset = 0;
+  private final double angleOffset = -2;
 
-  private final double angleSetpointBase = 62 + angleOffset;
-  private final double angleSetpointIntake = 38 + angleOffset;
+  private final double angleSetpointStowed = 0;
+  private final double angleSetpointBase = 68 + angleOffset;
+  private final double angleSetpointIntake = 41 + angleOffset;
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
   private final double angleSetpointLevel4 = 52 + angleOffset;
 
@@ -95,8 +96,8 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-    .p(0.03)
-    .i(0.0000000001)
+    .p(0.02)
+    .i(0.0000000003)
     .d(0);
 
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -111,7 +112,7 @@ public class Dispenser extends SubsystemBase {
     angleController.setReference(angle, ControlType.kPosition);
   }
 
-  public RelativeEncoder getEncoder() {
+  public RelativeEncoder getAngleEncoder() {
     return angleMotor.getEncoder();
   }
 
@@ -123,6 +124,9 @@ public class Dispenser extends SubsystemBase {
     this.level = level;
 
     switch (level) {
+      case STOWED:
+        setAngle(angleSetpointStowed);
+        break;
       case BASE:
         setAngle(angleSetpointBase);
         break;
@@ -166,7 +170,7 @@ public class Dispenser extends SubsystemBase {
   }
 
   public boolean atSetpoint() {
-    return Math.abs(getAngle() - angleSetpoint) < 1;
+    return Math.abs(getAngle() - angleSetpoint) < 2;
   }
 
   /**
@@ -193,8 +197,8 @@ public class Dispenser extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("angle encoder", getEncoder().getPosition());
-    SmartDashboard.putNumber("angle velocity", getEncoder().getVelocity());
+    SmartDashboard.putNumber("angle encoder", getAngleEncoder().getPosition());
+    SmartDashboard.putNumber("angle velocity", getAngleEncoder().getVelocity());
     SmartDashboard.putBoolean("limit switch", isLimitSwitchPressed());
   }
 }
