@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.FieldUtil;
 import frc.robot.LimelightHelpers;
 
 public class Vision extends SubsystemBase {
@@ -29,6 +30,16 @@ public class Vision extends SubsystemBase {
     }
   }
 
+  public static Pose2d getScoringPose(int tagId, boolean isLeft) {
+    Transform2d transform = FieldUtil.getScoringTransform(isLeft);
+    return transformFromTag(tagId, transform);
+  }
+
+  public static Pose2d getStationPose(int tagId) {
+    Transform2d transform = FieldUtil.getStationTransform();
+    return transformFromTag(tagId, transform);
+  }
+
   /**
    * Transforms the apriltag pose by a given transform
    * @param id apriltag id
@@ -36,7 +47,7 @@ public class Vision extends SubsystemBase {
    * @return transformed pose
    */
   public static Pose2d transformFromTag(int id, Transform2d transform) {
-    Pose2d tagPose = getTargetPose(id);
+    Pose2d tagPose = getTagPose(id);
     return tagPose.plus(transform);
   }
 
@@ -49,7 +60,7 @@ public class Vision extends SubsystemBase {
    * @param id apriltag id
    * @return apriltag pose
    */
-  public static Pose2d getTargetPose(int id) {
+  public static Pose2d getTagPose(int id) {
     if(id <= 0) return new Pose2d();  // if invalid id, return origin
 
     return fieldLayout.getTagPose(id).get().toPose2d();
@@ -64,14 +75,7 @@ public class Vision extends SubsystemBase {
   public static void targetBranch(CommandSwerveDrivetrain drivetrain, boolean isLeft) {
     int tagId = Vision.getCurrentTagId("limelight-two");
 
-    int sign = isLeft ? -1 : 1;
-    double offset = isLeft ? 6 : 7;
-    Translation2d baseTranslation = new Translation2d(0.47, Units.inchesToMeters(sign * offset + 16));
-
-    Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
-
-    Pose2d targetPose = Vision.transformFromTag(tagId, transform);
-    drivetrain.setTargetPose(targetPose);
+    drivetrain.setTargetPose(getScoringPose(tagId, isLeft));
   }
 
   /**
@@ -82,12 +86,7 @@ public class Vision extends SubsystemBase {
   public static void targetStation(CommandSwerveDrivetrain drivetrain) {
     int tagId = Vision.getCurrentTagId("limelight");
 
-    Translation2d baseTranslation = new Translation2d(0.44, -0.2);
-
-    Transform2d transform = new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
-
-    Pose2d targetPose = Vision.transformFromTag(tagId, transform);
-    drivetrain.setTargetPose(targetPose);
+    drivetrain.setTargetPose(getStationPose(tagId));
   }
 
   @Override
