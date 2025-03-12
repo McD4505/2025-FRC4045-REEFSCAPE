@@ -50,7 +50,7 @@ public class Elevator extends SubsystemBase {
   private final double clearIntakeHeight = Units.inchesToMeters(27);
 
   private final double scoringOffsetL23 = 0.12;  // L2 and L3 have the same angle
-  private final double scoringOffsetL4 = 0.23;  // L4 has a different angle
+  private final double scoringOffsetL4 = 0.13;  // L4 has a different angle
 
   private final double baseSetpoint = baseHeight;
   private final double intakeSetpoint = baseHeight;
@@ -77,23 +77,18 @@ public class Elevator extends SubsystemBase {
 
     config
       .inverted(false)
-      .idleMode(IdleMode.kBrake);
+      .idleMode(IdleMode.kBrake)
+      .smartCurrentLimit(30);
 
     config.encoder
       .positionConversionFactor(conversionFactor)
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-      .p(2)
-      .i(0.0001)
+      .p(1.5)
+      .i(0.000001)
       .d(0)
-      .outputRange(-0.15, 1);
-    
-    config.closedLoop.maxMotion
-      .maxAcceleration(1)
-      .maxVelocity(2)
-      .allowedClosedLoopError(0.01)
-      .positionMode(MAXMotionPositionMode.kMAXMotionTrapezoidal);
+      .outputRange(-0.2, 1);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
  
@@ -176,7 +171,8 @@ public class Elevator extends SubsystemBase {
    * @return the command to be scheduled
    */
   public Command waitToReachSetpointCommand() {
-    return Commands.waitUntil(() -> elevatorAndDispenserAtSetpoint());
+    // return Commands.waitUntil(() -> elevatorAndDispenserAtSetpoint());
+    return Commands.waitUntil(() -> atSetpoint());
   }
 
   /**
@@ -188,10 +184,10 @@ public class Elevator extends SubsystemBase {
     return Commands.sequence(
       Commands.waitSeconds(1),
       setTargetCommand(level),
-      waitToReachSetpointCommand().withTimeout(5),
-      dispenser.dispenseCommand().withTimeout(5),
+      waitToReachSetpointCommand().withTimeout(4),
+      dispenser.dispenseCommand(),
       setTargetCommand(ReefLevel.BASE),
-      waitToReachSetpointCommand().withTimeout(5)
+      waitToReachSetpointCommand()
     );
   }
 

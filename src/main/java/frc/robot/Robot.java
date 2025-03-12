@@ -65,6 +65,17 @@ public class Robot extends TimedRobot {
       m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(tagCount*tagCount)));
       m_robotContainer.drivetrain.addVisionMeasurement(mt1.pose, Utils.fpgaToCurrentTime(mt1.timestampSeconds));
     }
+
+    var mt1_1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
+    int tagCount1 = mt1_1.tagCount;
+
+    if (mt1_1 != null && tagCount1 > 0) {
+      double distance = LimelightHelpers.getTargetPose3d_RobotSpace("limelight").getTranslation().getNorm();
+      double stdDev = Math.min(distance, 3.0);
+
+      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(tagCount1*tagCount1)));
+      m_robotContainer.drivetrain.addVisionMeasurement(mt1_1.pose, Utils.fpgaToCurrentTime(mt1_1.timestampSeconds));
+    }
   }
 
   @Override

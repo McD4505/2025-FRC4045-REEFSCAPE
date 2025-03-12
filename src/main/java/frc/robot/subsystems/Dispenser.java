@@ -13,8 +13,10 @@ import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -44,9 +46,11 @@ public class Dispenser extends SubsystemBase {
   private final double angleSetpointBase = 68 + angleOffset;
   private final double angleSetpointIntake = 41 + angleOffset;
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
-  private final double angleSetpointLevel4 = 52 + angleOffset;
+  private final double angleSetpointLevel4 = 40 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
+
+  private AnalogInput distanceSensor = new AnalogInput(0);
 
   private ReefLevel level = ReefLevel.BASE;
 
@@ -71,7 +75,7 @@ public class Dispenser extends SubsystemBase {
     config
       .inverted(true)
       .idleMode(IdleMode.kBrake);
-
+      
     config.encoder
       .positionConversionFactor(conversionFactor)
       .velocityConversionFactor(conversionFactor);
@@ -96,9 +100,15 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-    .p(0.02)
-    .i(0.0000000003)
-    .d(0);
+      .p(0.01)
+      .i(0.0000000003)
+      .d(0);
+      // .feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder);
+
+    config.alternateEncoder
+      .positionConversionFactor(192.75)
+      .velocityConversionFactor(192.75)
+      .setSparkMaxDataPortConfig();
 
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -113,6 +123,7 @@ public class Dispenser extends SubsystemBase {
   }
 
   public RelativeEncoder getAngleEncoder() {
+    // return angleMotor.getAlternateEncoder();
     return angleMotor.getEncoder();
   }
 
@@ -189,7 +200,7 @@ public class Dispenser extends SubsystemBase {
     return Commands.sequence(
       setSpeedCommand(1),
       Commands.waitUntil(() -> !hasCoral()),
-      Commands.waitSeconds(2),
+      Commands.waitSeconds(1),
       setSpeedCommand(0)
     );
   }
@@ -200,5 +211,6 @@ public class Dispenser extends SubsystemBase {
     SmartDashboard.putNumber("angle encoder", getAngleEncoder().getPosition());
     SmartDashboard.putNumber("angle velocity", getAngleEncoder().getVelocity());
     SmartDashboard.putBoolean("limit switch", isLimitSwitchPressed());
+    SmartDashboard.putNumber("distance sensor", distanceSensor.getVoltage());
   }
 }

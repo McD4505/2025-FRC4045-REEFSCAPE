@@ -85,8 +85,6 @@ public class DriveToTargetPose extends Command {
   @Override
   public void end(boolean interrupted) {
     drivetrain.applyRequest(() -> brake).execute();
-    
-    LimelightHelpers.setLEDMode_ForceOff("limelight-two");
   }
 
   // Returns true when the command should end.
