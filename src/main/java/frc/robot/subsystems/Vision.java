@@ -75,7 +75,16 @@ public class Vision extends SubsystemBase {
   public static void targetBranch(CommandSwerveDrivetrain drivetrain, boolean isLeft) {
     int tagId = Vision.getCurrentTagId("limelight-two");
 
+    if(tagId <= 0) return;
     drivetrain.setTargetPose(getScoringPose(tagId, isLeft));
+  }
+
+  public static void targetBranchFromId(CommandSwerveDrivetrain drivetrain, int tagId, boolean isLeft) {
+    drivetrain.setTargetPose(getScoringPose(tagId, isLeft));
+  }
+
+  public static void targetStationFromId(CommandSwerveDrivetrain drivetrain, int tagId) {
+    drivetrain.setTargetPose(getStationPose(tagId));
   }
 
   /**
@@ -86,6 +95,7 @@ public class Vision extends SubsystemBase {
   public static void targetStation(CommandSwerveDrivetrain drivetrain) {
     int tagId = Vision.getCurrentTagId("limelight");
 
+    if(tagId <= 0) return;
     drivetrain.setTargetPose(getStationPose(tagId));
   }
 

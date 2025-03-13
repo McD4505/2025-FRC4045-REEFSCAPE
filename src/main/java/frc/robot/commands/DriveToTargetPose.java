@@ -36,6 +36,14 @@ public class DriveToTargetPose extends Command {
   /** Creates a new DriveToTargetPose. */
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain) {
     this.drivetrain = drivetrain;
+    this.targetPose = drivetrain.getTargetPose();
+    // Use addRequirements() here to declare subsystem dependencies.
+    addRequirements(drivetrain);
+  }
+
+  public DriveToTargetPose(CommandSwerveDrivetrain drivetrain, Pose2d targetPose) {
+    this.drivetrain = drivetrain;
+    this.targetPose = targetPose;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
   }
@@ -45,7 +53,6 @@ public class DriveToTargetPose extends Command {
   public void initialize() {
     LimelightHelpers.setLEDMode_ForceOn("limelight-two");
 
-    targetPose = drivetrain.getTargetPose();
     xController.setSetpoint(targetPose.getX());
     yController.setSetpoint(targetPose.getY());
     thetaController.setSetpoint(targetPose.getRotation().getDegrees());

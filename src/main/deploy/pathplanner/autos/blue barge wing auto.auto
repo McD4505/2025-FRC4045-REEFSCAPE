@@ -1,0 +1,73 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "blue barge center to near angled side"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "targetAndScoreL4Left"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "near angled side to station"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "targetAndDriveToStation"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitForCoral"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "blue barge side station to near station angled side"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "targetAndScoreL4Left"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "near station angled side to blue barge side station"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "targetAndDriveToStation"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "waitForCoral"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": false,
+  "folder": null,
+  "choreoAuto": false
+}
