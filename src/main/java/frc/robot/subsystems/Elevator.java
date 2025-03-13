@@ -45,7 +45,7 @@ public class Elevator extends SubsystemBase {
   private final double baseHeight = Units.inchesToMeters(9.875);
   private final double level2Height = 0.81;
   private final double level3Height = 1.21;
-  private final double level4Height = 1.83;
+  private final double level4Height = 1.86;
 
   private final double clearIntakeHeight = Units.inchesToMeters(27);
 
@@ -182,12 +182,11 @@ public class Elevator extends SubsystemBase {
    */
   public Command score(ReefLevel level) {
     return Commands.sequence(
-      Commands.waitSeconds(1),
       setTargetCommand(level),
-      waitToReachSetpointCommand().withTimeout(4),
+      waitToReachSetpointCommand().withTimeout(3),
       dispenser.dispenseCommand(),
       setTargetCommand(ReefLevel.BASE),
-      waitToReachSetpointCommand()
+      waitToReachSetpointCommand().withTimeout(3)
     );
   }
 
