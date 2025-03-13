@@ -200,7 +200,7 @@ public class Dispenser extends SubsystemBase {
     return Commands.sequence(
       setSpeedCommand(1),
       Commands.waitUntil(() -> !hasCoral()),
-      Commands.waitSeconds(0.5),
+      Commands.waitSeconds(0.25),
       setSpeedCommand(0)
     );
   }
