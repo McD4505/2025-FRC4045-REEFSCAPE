@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
-import frc.robot.autos.BlueBargeWingAuto;
+import frc.robot.autos.TeamBargeWingAuto;
 import frc.robot.commands.DriveToTargetPose;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -70,11 +70,11 @@ public class RobotContainer {
         );
 
         m_Chooser.addOption("blue barge wing", 
-            new BlueBargeWingAuto(drivetrain, elevator, dispenser, 
+            new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
                 () -> {return false;}));
         
         m_Chooser.addOption("red barge wing", 
-            new BlueBargeWingAuto(drivetrain, elevator, dispenser, 
+            new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
                 () -> {return true;}));
     }
 

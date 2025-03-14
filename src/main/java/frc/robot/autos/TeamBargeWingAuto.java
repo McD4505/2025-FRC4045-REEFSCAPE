@@ -27,9 +27,9 @@ import frc.robot.subsystems.Elevator.ReefLevel;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class BlueBargeWingAuto extends SequentialCommandGroup {
+public class TeamBargeWingAuto extends SequentialCommandGroup {
   /** Creates a new BlueBargeWingAuto. */
-  public BlueBargeWingAuto(CommandSwerveDrivetrain drivetrain, Elevator elevator, Dispenser dispenser, Supplier<Boolean> isRedSupplier) {
+  public TeamBargeWingAuto(CommandSwerveDrivetrain drivetrain, Elevator elevator, Dispenser dispenser, Supplier<Boolean> isRedSupplier) {
     // Add your commands in the addCommands() call, e.g.
 
     PathPlannerPath startToNearSide;
