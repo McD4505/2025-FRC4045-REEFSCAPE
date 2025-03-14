@@ -56,8 +56,8 @@ public class RobotContainer {
     private Dispenser dispenser = elevator.getDispenser();
 
     public RobotContainer() {
-        NamedCommands.registerCommand("waitForCoral", dispenser.waitForCoralCommand());
-        NamedCommands.registerCommand("score l4", elevator.score(ReefLevel.LEVEL_4));
+        // NamedCommands.registerCommand("waitForCoral", dispenser.waitForCoralCommand());
+        // NamedCommands.registerCommand("score l4", elevator.score(ReefLevel.LEVEL_4));
 
         configureBindings();
 
@@ -71,7 +71,11 @@ public class RobotContainer {
 
         m_Chooser.addOption("blue barge wing", 
             new BlueBargeWingAuto(drivetrain, elevator, dispenser, 
-                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red));
+                () -> {return false;}));
+        
+        m_Chooser.addOption("red barge wing", 
+            new BlueBargeWingAuto(drivetrain, elevator, dispenser, 
+                () -> {return true;}));
     }
 
     private void configureBindings() {
@@ -103,7 +107,7 @@ public class RobotContainer {
 
         joystick.start().and(joystick.y()).onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_2));
 
-        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(1));
+        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(0.9));
         joystick.rightBumper().onFalse(dispenser.setSpeedCommand(0));
 
         joystick.rightTrigger().onTrue(dispenser.setSpeedCommand(-0.75));

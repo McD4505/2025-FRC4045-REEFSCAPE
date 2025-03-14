@@ -49,8 +49,8 @@ public class Elevator extends SubsystemBase {
 
   private final double clearIntakeHeight = Units.inchesToMeters(27);
 
-  private final double scoringOffsetL23 = 0.12;  // L2 and L3 have the same angle
-  private final double scoringOffsetL4 = 0.13;  // L4 has a different angle
+  private final double scoringOffsetL23 = 0.08;  // L2 and L3 have the same angle
+  private final double scoringOffsetL4 = 0.20;  // L4 has a different angle
 
   private final double baseSetpoint = baseHeight;
   private final double intakeSetpoint = baseHeight;
@@ -85,7 +85,7 @@ public class Elevator extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-      .p(1.5)
+      .p(2)
       .i(0.000001)
       .d(0)
       .outputRange(-0.2, 1);

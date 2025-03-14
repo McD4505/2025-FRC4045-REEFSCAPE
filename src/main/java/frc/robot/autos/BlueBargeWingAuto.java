@@ -58,57 +58,41 @@ public class BlueBargeWingAuto extends SequentialCommandGroup {
     int idStation = 13;
     
     if(isRedSupplier.get()) {
-      startToNearSide = startToNearSide.flipPath();
-      nearSideToStation = nearSideToStation.flipPath();
-      stationToNearStationSide = stationToNearStationSide.flipPath();
-      nearStationSideToStation = nearStationSideToStation.flipPath();
-
-      idTarget1 = 9;
-      idTarget2 = 8;
-      idStation = 2;
+      idTarget1 = 11;
+      idTarget2 = 6;
+      idStation = 1;
     }
-
-    // Command targetNearLeft = new InstantCommand(() -> Vision.targetBranchFromId(drivetrain, idTarget1, true));
-    // Command targetNearStationLeft = new InstantCommand(() -> Vision.targetBranchFromId(drivetrain, idTarget2, true));
-    // Command targetNearStationRight = new InstantCommand(() -> Vision.targetBranchFromId(drivetrain, idTarget2, false));
-    // Command targetStation = new InstantCommand(() -> Vision.targetStationFromId(drivetrain, idStation));
 
     Pose2d nearScoringPoseLeft = Vision.getScoringPose(idTarget1, true);
     Pose2d nearStationScoringPoseLeft = Vision.getScoringPose(idTarget2, true);
     Pose2d nearStationScoringPoseRight = Vision.getScoringPose(idTarget2, false);
     Pose2d stationPose = Vision.getStationPose(idStation);
-
-
-    Command driveStartToNearSide = AutoBuilder.followPath(startToNearSide);
-    Command driveNearSideToStation = AutoBuilder.followPath(nearSideToStation);
-    Command driveStationToNearStationSide = AutoBuilder.followPath(stationToNearStationSide);
-    Command driveNearStationSideToStation = AutoBuilder.followPath(nearStationSideToStation);
     
     addCommands(
       // drive to first target, score, and set intake mode
-      driveStartToNearSide,
+      AutoBuilder.followPath(startToNearSide),
       new DriveToTargetPose(drivetrain, nearScoringPoseLeft),
       elevator.score(ReefLevel.LEVEL_4),
       elevator.setTargetCommand(ReefLevel.INTAKE),
 
       // drive to station and wait for coral
-      driveNearSideToStation,
+      AutoBuilder.followPath(nearSideToStation),
       new DriveToTargetPose(drivetrain, stationPose),
-      dispenser.waitForCoralCommand(),
+      dispenser.waitForCoralCommand().withTimeout(2),
 
       // drive to station-side reef side and score left
-      driveStationToNearStationSide,
+      AutoBuilder.followPath(stationToNearStationSide),
       new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft),
       elevator.score(ReefLevel.LEVEL_4),
       elevator.setTargetCommand(ReefLevel.INTAKE),
       
       // drive to station and wait for coral
-      driveNearStationSideToStation,
+      AutoBuilder.followPath(nearStationSideToStation),
       new DriveToTargetPose(drivetrain, stationPose),
-      dispenser.waitForCoralCommand(),
+      dispenser.waitForCoralCommand().withTimeout(2),
 
       // drive to station-side reef side and score right
-      driveStationToNearStationSide,
+      AutoBuilder.followPath(stationToNearStationSide),
       new DriveToTargetPose(drivetrain, nearStationScoringPoseRight),
       elevator.score(ReefLevel.LEVEL_4)
     );

@@ -16,14 +16,14 @@ public class FieldUtil {
 
     public static Transform2d getScoringTransform(boolean isLeft) {
         int sign = isLeft ? -1 : 1;
-        double offset = isLeft ? 6 : 6;
-        Translation2d baseTranslation = new Translation2d(0.48, Units.inchesToMeters(sign * offset + 12));
+        double offset = isLeft ? 7 : 6;
+        Translation2d baseTranslation = new Translation2d(0.50, Units.inchesToMeters(sign * offset + 12));
 
         return new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
     }
 
     public static Transform2d getStationTransform() {
-        Translation2d baseTranslation = new Translation2d(0.48, -0.2);
+        Translation2d baseTranslation = new Translation2d(0.50, -0.2);
 
         return new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
     }

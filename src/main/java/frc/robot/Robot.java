@@ -56,24 +56,22 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledPeriodic() {
     var mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-two");
-    int tagCount = mt1.tagCount;
 
-    if (mt1 != null && tagCount > 0) {
+    if (mt1 != null && mt1.tagCount > 0) {
       double distance = LimelightHelpers.getTargetPose3d_RobotSpace("limelight-two").getTranslation().getNorm();
       double stdDev = Math.min(distance, 3.0);
 
-      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(tagCount*tagCount)));
+      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(mt1.tagCount*mt1.tagCount)));
       m_robotContainer.drivetrain.addVisionMeasurement(mt1.pose, Utils.fpgaToCurrentTime(mt1.timestampSeconds));
     }
 
     var mt1_1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
-    int tagCount1 = mt1_1.tagCount;
 
-    if (mt1_1 != null && tagCount1 > 0) {
+    if (mt1_1 != null && mt1_1.tagCount > 0) {
       double distance = LimelightHelpers.getTargetPose3d_RobotSpace("limelight").getTranslation().getNorm();
       double stdDev = Math.min(distance, 3.0);
 
-      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(tagCount1*tagCount1)));
+      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(mt1_1.tagCount*mt1_1.tagCount)));
       m_robotContainer.drivetrain.addVisionMeasurement(mt1_1.pose, Utils.fpgaToCurrentTime(mt1_1.timestampSeconds));
     }
   }

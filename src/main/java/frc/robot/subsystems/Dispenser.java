@@ -44,9 +44,9 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleSetpointStowed = 0;
   private final double angleSetpointBase = 68 + angleOffset;
-  private final double angleSetpointIntake = 41 + angleOffset;
+  private final double angleSetpointIntake = 38 + angleOffset;
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
-  private final double angleSetpointLevel4 = 40 + angleOffset;
+  private final double angleSetpointLevel4 = 47 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
 

@@ -33,10 +33,13 @@ public class DriveToTargetPose extends Command {
 
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
+  private boolean useDrivetrainTarget = true;
+
   /** Creates a new DriveToTargetPose. */
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain) {
     this.drivetrain = drivetrain;
-    this.targetPose = drivetrain.getTargetPose();
+    useDrivetrainTarget = true;
+    // targetPose = drivetrain.getTargetPose();
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
   }
@@ -44,6 +47,7 @@ public class DriveToTargetPose extends Command {
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain, Pose2d targetPose) {
     this.drivetrain = drivetrain;
     this.targetPose = targetPose;
+    useDrivetrainTarget = false;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
   }
@@ -51,6 +55,10 @@ public class DriveToTargetPose extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    if(useDrivetrainTarget) {
+      targetPose = drivetrain.getTargetPose();
+    }
+    
     LimelightHelpers.setLEDMode_ForceOn("limelight-two");
 
     xController.setSetpoint(targetPose.getX());
