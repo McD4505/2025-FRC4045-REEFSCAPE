@@ -8,17 +8,14 @@ import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
+import frc.robot.autos.OtherTeamBargeWingAuto;
 import frc.robot.autos.TeamBargeWingAuto;
 import frc.robot.commands.DriveToTargetPose;
 import frc.robot.generated.TunerConstants;
@@ -76,6 +73,14 @@ public class RobotContainer {
         m_Chooser.addOption("red barge wing", 
             new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
                 () -> {return true;}));
+
+        m_Chooser.addOption("blue other barge wing", 
+            new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, 
+                () -> {return false;}));
+        
+        m_Chooser.addOption("red other barge wing", 
+            new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, 
+                () -> {return true;}));
     }
 
     private void configureBindings() {
@@ -103,11 +108,14 @@ public class RobotContainer {
         joystick.x().onTrue(elevator.setTargetCommand(ReefLevel.BASE));
         joystick.y().onTrue(elevator.setTargetCommand(ReefLevel.INTAKE));
 
-        joystick.back().onTrue(elevator.setTargetCommand(ReefLevel.STOWED));
+        joystick.back().and(joystick.a()).onTrue(elevator.setTargetCommand(ReefLevel.STOWED));
+
+        joystick.back().and(joystick.x()).onTrue(elevator.setTargetCommand(ReefLevel.DISABLED));
+        joystick.back().and(joystick.b()).onTrue(elevator.setTargetCommand(ReefLevel.HIGH));
 
         joystick.start().and(joystick.y()).onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_2));
 
-        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(0.9));
+        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(0.3));
         joystick.rightBumper().onFalse(dispenser.setSpeedCommand(0));
 
         joystick.rightTrigger().onTrue(dispenser.setSpeedCommand(-0.75));
@@ -126,10 +134,10 @@ public class RobotContainer {
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.
-        joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+        // joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+        // joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+        // joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+        // joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 
         // reset the field-centric heading on left bumper press
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
