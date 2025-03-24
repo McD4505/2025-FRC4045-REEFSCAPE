@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.OtherTeamBargeWingAuto;
 import frc.robot.autos.TeamBargeWingAuto;
 import frc.robot.commands.DriveToTargetPose;
@@ -144,6 +145,13 @@ public class RobotContainer {
         .andThen(drivetrain.recalculateOperatorPerspectiveCommand()));
 
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        // automatic triggers
+        Trigger shouldZeroAngleMotor = new Trigger(() -> 
+            dispenser.isLimitSwitchPressed() && 
+            (elevator.getLevel() == ReefLevel.BASE || elevator.getLevel() == ReefLevel.STOWED));
+
+        shouldZeroAngleMotor.whileTrue(dispenser.zeroAngleMotorCommand().ignoringDisable(true));
     }
 
     public Command getAutonomousCommand() {

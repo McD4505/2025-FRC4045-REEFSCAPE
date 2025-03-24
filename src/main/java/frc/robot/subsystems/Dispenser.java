@@ -212,6 +212,10 @@ public class Dispenser extends SubsystemBase {
     );
   }
 
+  public Command zeroAngleMotorCommand() {
+    return runOnce(() -> zeroAngleMotor());
+  }
+
   @Override
   public void periodic() {
     // This method will be called once per scheduler run

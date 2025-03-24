@@ -134,17 +134,16 @@ public class Elevator extends SubsystemBase {
       hasCoral = dispenserHasCoral;
     }
 
-    // zero angle motor if limit switch is pressed
-    if(dispenser.isLimitSwitchPressed() && level == ReefLevel.BASE) {
-      dispenser.zeroAngleMotor();
-    }
-
     // update dispenser state (avoiding intake while going up)
     updateDispenserState();
 
     // update elevator state (waiting for dispenser before extending)
     // updateElevatorState();
     SmartDashboard.putNumber("elevator height error", getHeight() - getHeightSetpoint());
+  }
+
+  public ReefLevel getLevel() {
+    return level;
   }
 
   public void setLEDIntakeMode() {
