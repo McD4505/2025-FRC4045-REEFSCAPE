@@ -21,8 +21,8 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 public class DriveToTargetPose extends Command {
   private final CommandSwerveDrivetrain drivetrain;
 
-  private final PIDController xController = new PIDController(4, 0, 0);
-  private final PIDController yController = new PIDController(4, 0, 0);
+  private final PIDController xController = new PIDController(3.5, 0, 0);
+  private final PIDController yController = new PIDController(3.5, 0, 0);
   private final PIDController thetaController = new PIDController(0.1, 0, 0);
 
   private Pose2d targetPose = new Pose2d();
@@ -34,6 +34,8 @@ public class DriveToTargetPose extends Command {
   private final SwerveRequest.SwerveDriveBrake brake = new SwerveRequest.SwerveDriveBrake();
 
   private boolean useDrivetrainTarget = true;
+
+  private final double maxSpeed = 3.5; // m/s
 
   /** Creates a new DriveToTargetPose. */
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain) {
@@ -60,13 +62,14 @@ public class DriveToTargetPose extends Command {
     }
     
     LimelightHelpers.setLEDMode_ForceOn("limelight-two");
+    LimelightHelpers.setLEDMode_ForceOn("limelight");
 
     xController.setSetpoint(targetPose.getX());
     yController.setSetpoint(targetPose.getY());
     thetaController.setSetpoint(targetPose.getRotation().getDegrees());
 
-    xController.setTolerance(0.01);
-    yController.setTolerance(0.01);
+    xController.setTolerance(0.02);
+    yController.setTolerance(0.02);
     thetaController.setTolerance(0.2);
 
     thetaController.enableContinuousInput(0, 360);
@@ -78,8 +81,12 @@ public class DriveToTargetPose extends Command {
     Pose2d currentPose = drivetrain.getState().Pose;
 
     // calculate x and y speeds
-    double xSpeed = xController.calculate(currentPose.getX());
-    double ySpeed = yController.calculate(currentPose.getY());
+    double xSpeedUncapped = xController.calculate(currentPose.getX());
+    double ySpeedUncapped = yController.calculate(currentPose.getY());
+    
+    // clamp x and y speeds
+    double xSpeed = Math.max(-maxSpeed, Math.min(xSpeedUncapped, maxSpeed));
+    double ySpeed = Math.max(-maxSpeed, Math.min(ySpeedUncapped, maxSpeed));
 
     // normalize pose angle to be between 0 and 360
     double normalizedAngle = currentPose.getRotation().getDegrees() % 360;

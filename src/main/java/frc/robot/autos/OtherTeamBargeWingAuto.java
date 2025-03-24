@@ -27,9 +27,9 @@ import frc.robot.subsystems.Elevator.ReefLevel;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class TeamBargeWingAuto extends SequentialCommandGroup {
+public class OtherTeamBargeWingAuto extends SequentialCommandGroup {
   /** Creates a new BlueBargeWingAuto. */
-  public TeamBargeWingAuto(CommandSwerveDrivetrain drivetrain, Elevator elevator, Dispenser dispenser, Supplier<Boolean> isRedSupplier) {
+  public OtherTeamBargeWingAuto(CommandSwerveDrivetrain drivetrain, Elevator elevator, Dispenser dispenser, Supplier<Boolean> isRedSupplier) {
     // Add your commands in the addCommands() call, e.g.
 
     PathPlannerPath startToNearSide;
@@ -52,21 +52,21 @@ public class TeamBargeWingAuto extends SequentialCommandGroup {
       return;
     }
 
-    int idTarget1 = 20;
-    int idTarget2 = 19;
+    int idTarget1 = 22;
+    int idTarget2 = 17;
 
-    int idStation = 13;
+    int idStation = 12;
     
     if(isRedSupplier.get()) {
-      idTarget1 = 11;
-      idTarget2 = 6;
-      idStation = 1;
+      idTarget1 = 9;
+      idTarget2 = 8;
+      idStation = 2;
     }
 
     Pose2d nearScoringPoseLeft = Vision.getScoringPose(idTarget1, true);
     Pose2d nearStationScoringPoseLeft = Vision.getScoringPose(idTarget2, true);
     Pose2d nearStationScoringPoseRight = Vision.getScoringPose(idTarget2, false);
-    Pose2d stationPose = Vision.getStationPoseRight(idStation);
+    Pose2d stationPose = Vision.getStationPoseLeft(idStation);
     
     addCommands(
       // drive to first target, score, and set intake mode
@@ -83,7 +83,7 @@ public class TeamBargeWingAuto extends SequentialCommandGroup {
 
       // drive to station-side reef side and score left
       // AutoBuilder.followPath(stationToNearStationSide),
-      new DriveToTargetPose(drivetrain, nearStationScoringPoseRight).withTimeout(4),
+      new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft).withTimeout(4),
       elevator.score(ReefLevel.LEVEL_4),
       elevator.setTargetCommand(ReefLevel.INTAKE)
       
@@ -95,7 +95,7 @@ public class TeamBargeWingAuto extends SequentialCommandGroup {
 
       // // drive to station-side reef side and score right
       // // AutoBuilder.followPath(stationToNearStationSide),
-      // new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft).withTimeout(4),
+      // new DriveToTargetPose(drivetrain, nearStationScoringPoseRight).withTimeout(4),
       // elevator.score(ReefLevel.LEVEL_4)
     );
   }
