@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 5.025681818181818,
-        "y": 5.6254403409090905
+        "x": 5.225113636363636,
+        "y": 5.416036931818183
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.7622583210861738,
-        "y": 5.811965552504535
+        "x": 5.094038639406837,
+        "y": 6.326881060105076
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.213693181818182,
-        "y": 6.293536931818181
+        "x": 4.846193181818182,
+        "y": 6.423167613636363
       },
       "prevControl": {
-        "x": 1.9724869794796531,
-        "y": 6.367980159170388
+        "x": 4.8201236076244625,
+        "y": 6.174530574357502
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "blue barge side station"
+      "linkedName": null
     }
   ],
   "rotationTargets": [
@@ -53,7 +53,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": -90.0
+    "rotation": -122.2756443145776
   },
   "useDefaultConstraints": true
 }

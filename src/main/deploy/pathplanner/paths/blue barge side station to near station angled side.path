@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.213693181818182,
-        "y": 6.293536931818181
+        "x": 4.327670454545454,
+        "y": 6.512911931818182
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.263762906443646,
-        "y": 5.8887421910820255
+        "x": 5.397669387961063,
+        "y": 6.294238273451299
       },
       "isLocked": false,
       "linkedName": "blue barge side station"
     },
     {
       "anchor": {
-        "x": 3.5299431818181817,
-        "y": 5.804928977272727
+        "x": 2.4829261363636363,
+        "y": 6.71234375
       },
       "prevControl": {
-        "x": 2.779807369060511,
-        "y": 6.106181560348018
+        "x": 1.7654060224901582,
+        "y": 6.913995694609009
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": "near blue barge station angled side"
+      "linkedName": null
     }
   ],
   "rotationTargets": [],
