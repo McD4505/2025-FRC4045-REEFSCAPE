@@ -27,4 +27,16 @@ public class FieldUtil {
 
         return new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
     }
+
+    public static Transform2d getStationTransformRight() {
+        Translation2d baseTranslation = new Translation2d(0.48, 0.5);
+
+        return new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
+    }
+
+    public static Transform2d getStationTransformLeft() {
+        Translation2d baseTranslation = new Translation2d(0.48, -0.8);
+
+        return new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
+    }
 }

@@ -11,6 +11,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.subsystems.Vision;
 
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
@@ -36,17 +37,8 @@ public class Robot extends TimedRobot {
       LimelightHelpers.SetRobotOrientation("limelight", headingDeg, 0, 0, 0, 0, 0);
       LimelightHelpers.SetRobotOrientation("limelight-two", headingDeg, 0, 0, 0, 0, 0);
 
-      var mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
-      if (mt2 != null && mt2.tagCount > 0 && omegaRps < 2.0) {
-        m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 9999999));
-        m_robotContainer.drivetrain.addVisionMeasurement(mt2.pose, Utils.fpgaToCurrentTime(mt2.timestampSeconds));
-      }
-
-      var mt2_1 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight-two");
-      if (mt2_1 != null && mt2_1.tagCount > 0 && omegaRps < 2.0) {
-        m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(.5, .5, 9999999));
-        m_robotContainer.drivetrain.addVisionMeasurement(mt2_1.pose, Utils.fpgaToCurrentTime(mt2_1.timestampSeconds));
-      }
+      Vision.addVisionMeasurementMT2(m_robotContainer.drivetrain, "limelight", omegaRps);
+      Vision.addVisionMeasurementMT2(m_robotContainer.drivetrain, "limelight-two", omegaRps);
     }
   }
 
@@ -55,25 +47,8 @@ public class Robot extends TimedRobot {
 
   @Override
   public void disabledPeriodic() {
-    var mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight-two");
-
-    if (mt1 != null && mt1.tagCount > 0) {
-      double distance = LimelightHelpers.getTargetPose3d_RobotSpace("limelight-two").getTranslation().getNorm();
-      double stdDev = Math.min(distance, 3.0);
-
-      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(mt1.tagCount*mt1.tagCount)));
-      m_robotContainer.drivetrain.addVisionMeasurement(mt1.pose, Utils.fpgaToCurrentTime(mt1.timestampSeconds));
-    }
-
-    var mt1_1 = LimelightHelpers.getBotPoseEstimate_wpiBlue("limelight");
-
-    if (mt1_1 != null && mt1_1.tagCount > 0) {
-      double distance = LimelightHelpers.getTargetPose3d_RobotSpace("limelight").getTranslation().getNorm();
-      double stdDev = Math.min(distance, 3.0);
-
-      m_robotContainer.drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 1/(mt1_1.tagCount*mt1_1.tagCount)));
-      m_robotContainer.drivetrain.addVisionMeasurement(mt1_1.pose, Utils.fpgaToCurrentTime(mt1_1.timestampSeconds));
-    }
+    Vision.addVisionMeasurementMT1(m_robotContainer.drivetrain, "limelight-two");
+    Vision.addVisionMeasurementMT1(m_robotContainer.drivetrain, "limelight");
   }
 
   @Override
