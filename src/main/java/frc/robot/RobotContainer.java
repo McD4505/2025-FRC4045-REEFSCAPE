@@ -147,11 +147,16 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // automatic triggers
-        Trigger shouldZeroAngleMotor = new Trigger(() -> 
+        // zero angle motor trigger
+        Trigger zeroAngleMotorTrigger = new Trigger(() -> 
             dispenser.isLimitSwitchPressed() && 
             (elevator.getLevel() == ReefLevel.BASE || elevator.getLevel() == ReefLevel.STOWED));
 
-        shouldZeroAngleMotor.whileTrue(dispenser.zeroAngleMotorCommand().ignoringDisable(true));
+        zeroAngleMotorTrigger.whileTrue(dispenser.zeroAngleMotorCommand().ignoringDisable(true));
+        
+        // LED intake trigger
+        Trigger ledIntakeTrigger = new Trigger(elevator::hasCoralChanged);
+        ledIntakeTrigger.onTrue(elevator.updateLEDIntakeStateCommand().ignoringDisable(true));
     }
 
     public Command getAutonomousCommand() {

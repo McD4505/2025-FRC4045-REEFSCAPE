@@ -121,19 +121,6 @@ public class Elevator extends SubsystemBase {
       disablePID();
     }
 
-    // update LEDs if state has changed
-    boolean dispenserHasCoral = dispenser.hasCoral();
-    if(dispenserHasCoral != hasCoral) {
-
-      if(dispenserHasCoral) {
-        leds.setState(LEDState.GREEN);
-      } else {
-        leds.setState(LEDState.RED);
-      }
-
-      hasCoral = dispenserHasCoral;
-    }
-
     // update dispenser state (avoiding intake while going up)
     updateDispenserState();
 
@@ -142,16 +129,27 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putNumber("elevator height error", getHeight() - getHeightSetpoint());
   }
 
+  public boolean hasCoralChanged() {
+    return dispenser.hasCoral() != hasCoral;
+  }
+
   public ReefLevel getLevel() {
     return level;
   }
 
-  public void setLEDIntakeMode() {
+  public Command updateLEDIntakeStateCommand() {
+    return runOnce(() -> {
+      updateLEDIntakeState();
+    });
+  }
+
+  public void updateLEDIntakeState() {
     if(dispenser.hasCoral()) {
       leds.setState(LEDState.GREEN);
     } else {
       leds.setState(LEDState.RED);
     }
+    hasCoral = dispenser.hasCoral();
   }
 
   public boolean isElevatorAtBase() {
@@ -237,7 +235,7 @@ public class Elevator extends SubsystemBase {
         setHeight(baseSetpoint);
         break;
       case INTAKE:
-        setLEDIntakeMode();
+        updateLEDIntakeState();
         setHeight(intakeSetpoint);
         break;
       case LEVEL_2:
