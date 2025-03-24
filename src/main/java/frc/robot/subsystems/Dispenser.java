@@ -44,9 +44,9 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleSetpointStowed = 0;
   private final double angleSetpointBase = 68 + angleOffset;
-  private final double angleSetpointIntake = 38 + angleOffset;
+  private final double angleSetpointIntake = 39 + angleOffset;
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
-  private final double angleSetpointLevel4 = 47 + angleOffset;
+  private final double angleSetpointLevel4 = 49 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
 
@@ -102,7 +102,9 @@ public class Dispenser extends SubsystemBase {
     config.closedLoop
       .p(0.01)
       .i(0.0000000003)
-      .d(0);
+      .d(0)
+      .maxOutput(0.25)
+      .minOutput(-0.25);
       // .feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder);
 
     config.alternateEncoder
@@ -135,6 +137,8 @@ public class Dispenser extends SubsystemBase {
     this.level = level;
 
     switch (level) {
+      case DISABLED:
+        setAngle(angleSetpointBase);
       case STOWED:
         setAngle(angleSetpointStowed);
         break;
@@ -151,6 +155,9 @@ public class Dispenser extends SubsystemBase {
         setAngle(angleSetpointLevel2and3);
         break;
       case LEVEL_4:
+        setAngle(angleSetpointLevel4);
+        break;
+      case HIGH:
         setAngle(angleSetpointLevel4);
         break;
     }
@@ -189,7 +196,7 @@ public class Dispenser extends SubsystemBase {
    * @return the command to be scheduled
    */
   public Command waitForCoralCommand() {
-    return Commands.waitUntil(this::hasCoral);
+    return Commands.waitUntil(() -> hasCoral());
   }
 
   /**
@@ -198,7 +205,7 @@ public class Dispenser extends SubsystemBase {
    */
   public Command dispenseCommand() {
     return Commands.sequence(
-      setSpeedCommand(1),
+      setSpeedCommand(0.5),
       Commands.waitUntil(() -> !hasCoral()),
       Commands.waitSeconds(0.25),
       setSpeedCommand(0)

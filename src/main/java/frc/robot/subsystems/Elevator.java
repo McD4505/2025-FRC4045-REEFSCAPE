@@ -24,7 +24,7 @@ import frc.robot.subsystems.AddressableLedStrip.LEDState;
 public class Elevator extends SubsystemBase {
 
   public enum ReefLevel {
-    STOWED, BASE, INTAKE, LEVEL_2, LEVEL_3, LEVEL_4
+    DISABLED, STOWED, BASE, INTAKE, LEVEL_2, LEVEL_3, LEVEL_4, HIGH
   }
   /** Creates a new Elevator. */
   private SparkMax lift = new SparkMax(15, MotorType.kBrushless);
@@ -49,8 +49,8 @@ public class Elevator extends SubsystemBase {
 
   private final double clearIntakeHeight = Units.inchesToMeters(27);
 
-  private final double scoringOffsetL23 = 0.08;  // L2 and L3 have the same angle
-  private final double scoringOffsetL4 = 0.20;  // L4 has a different angle
+  private final double scoringOffsetL23 = 0.01;  // L2 and L3 have the same angle
+  private final double scoringOffsetL4 = 0.07;  // L4 has a different angle
 
   private final double baseSetpoint = baseHeight;
   private final double intakeSetpoint = baseHeight;
@@ -78,7 +78,8 @@ public class Elevator extends SubsystemBase {
     config
       .inverted(false)
       .idleMode(IdleMode.kBrake)
-      .smartCurrentLimit(30);
+      .smartCurrentLimit(35)
+      .voltageCompensation(12);
 
     config.encoder
       .positionConversionFactor(conversionFactor)
@@ -86,13 +87,17 @@ public class Elevator extends SubsystemBase {
 
     config.closedLoop
       .p(2)
-      .i(0.000001)
+      .i(0.0001)
       .d(0)
-      .outputRange(-0.2, 1);
+      .outputRange(-0.3, 1);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
  
     resetPosition();
+  }
+
+  public double getHeightSetpoint() {
+    return heightSetpoint;
   }
 
   public Command setDispenserSpeedCommand(double mps) {
@@ -111,7 +116,8 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     // soften elevator landing
-    if(level == ReefLevel.BASE && Math.abs(getHeight() - baseSetpoint) < 0.2) {
+    boolean isCloseToBase = level == ReefLevel.BASE && getHeight() < baseHeight + 0.1;
+    if(level == ReefLevel.DISABLED || isCloseToBase) {
       disablePID();
     }
 
@@ -138,6 +144,7 @@ public class Elevator extends SubsystemBase {
 
     // update elevator state (waiting for dispenser before extending)
     // updateElevatorState();
+    SmartDashboard.putNumber("elevator height error", getHeight() - getHeightSetpoint());
   }
 
   public void setLEDIntakeMode() {
@@ -161,18 +168,17 @@ public class Elevator extends SubsystemBase {
     elevatorController.setReference(height, ControlType.kPosition);
   }
 
-  public boolean elevatorAndDispenserAtSetpoint() {
-    return atSetpoint() && getDispenser().atSetpoint();
-  }
-
   /**
    * Command sequence that sets the elevator target and ends when it reaches its setpoint
    * @param level target level
    * @return the command to be scheduled
    */
   public Command waitToReachSetpointCommand() {
-    // return Commands.waitUntil(() -> elevatorAndDispenserAtSetpoint());
     return Commands.waitUntil(() -> atSetpoint());
+  }
+
+  public Command waitUntilCloseToBaseCommand() {
+    return Commands.waitUntil(() -> getHeight() < baseHeight + 0.15);
   }
 
   /**
@@ -186,7 +192,7 @@ public class Elevator extends SubsystemBase {
       waitToReachSetpointCommand().withTimeout(3),
       dispenser.dispenseCommand(),
       setTargetCommand(ReefLevel.BASE),
-      waitToReachSetpointCommand().withTimeout(3)
+      waitUntilCloseToBaseCommand().withTimeout(3)
     );
   }
 
@@ -221,6 +227,9 @@ public class Elevator extends SubsystemBase {
     this.level = level;
 
     switch (level) {
+      case DISABLED:
+        disablePID();
+        break;
       case STOWED:
         setHeight(baseSetpoint);
         break;
@@ -244,6 +253,9 @@ public class Elevator extends SubsystemBase {
         leds.setState(LEDState.PURPLE);
         setHeight(level4Setpoint);
         break;
+      case HIGH:
+        setHeight(level4Setpoint + 0.09);
+        break;
     }
   }
 
@@ -252,33 +264,25 @@ public class Elevator extends SubsystemBase {
   }
 
   /**
-   * Use current height and target level to determine if dispenser should be stowed
-   * @return true if dispenser should be stowed; false otherwise
+   * Use current height and target level to determine if dispenser should avoid the intake
+   * @return true if dispenser should avoid intake; false otherwise
    */
   private boolean shouldAvoidIntake() {
-    return level != ReefLevel.INTAKE && !isClearOfIntake() && level != ReefLevel.STOWED;
-  }
+    boolean isException = 
+      level == ReefLevel.INTAKE ||
+      level == ReefLevel.STOWED ||
+      level == ReefLevel.DISABLED;
 
-  private boolean shouldStowDispenser() {
-    // if elevator is far from target level, stow dispenser
-    // boolean stowL4 = level == ReefLevel.LEVEL_4 && getHeight() < level4Setpoint - 0.05;
-    // boolean stowL3 = level == ReefLevel.LEVEL_3 && getHeight() < level3Setpoint - 0.05;
-
-    // return isClearOfIntake() && (stowL4 || stowL3);
-    return level == ReefLevel.STOWED && isElevatorAtBase();
+    return !isClearOfIntake() && !isException;
   }
 
   /** 
-   * Stow dispenser if necessary
+   * Avoid intake if necessary
    * otherwise, set dispenser angle to target level
   */
   public void updateDispenserState() {
     if(shouldAvoidIntake()) {
       dispenser.setAngleTarget(ReefLevel.BASE);
-
-    // } else if(shouldStowDispenser()) {
-    //   dispenser.setAngleTarget(ReefLevel.STOWED);
-
     } else {
       dispenser.setAngleTarget(level);
     }
