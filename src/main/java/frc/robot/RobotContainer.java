@@ -119,8 +119,8 @@ public class RobotContainer {
     private void configureSecondController() {
         Trigger closeTrigger = controller2.a();
         Trigger farTrigger = controller2.y();
-        Trigger leftTrigger = controller2.x();
-        Trigger rightTrigger = controller2.b();
+        Trigger leftCloseTrigger = controller2.x();
+        Trigger rightCloseTrigger = controller2.b();
         Trigger leftFarTrigger = controller2.x().and(controller2.rightBumper());
         Trigger rightFarTrigger = controller2.b().and(controller2.rightBumper());
 
@@ -129,8 +129,8 @@ public class RobotContainer {
 
         closeTrigger.onTrue(pathfindToSide(ReefSide.CLOSE));  // close
         farTrigger.onTrue(pathfindToSide(ReefSide.FAR));  // far
-        leftTrigger.onTrue(pathfindToSide(ReefSide.LEFT_CLOSE));  // left close
-        rightTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_CLOSE));  // right close
+        leftCloseTrigger.onTrue(pathfindToSide(ReefSide.LEFT_CLOSE));  // left close
+        rightCloseTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_CLOSE));  // right close
 
         leftFarTrigger.onTrue(pathfindToSide(ReefSide.LEFT_FAR));  // left far
         rightFarTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_FAR));  // right far
