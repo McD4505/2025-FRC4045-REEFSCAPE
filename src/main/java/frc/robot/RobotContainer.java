@@ -6,6 +6,9 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.Set;
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -15,7 +18,9 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.autos.OtherTeamBargeWingAuto;
@@ -71,21 +76,29 @@ public class RobotContainer {
                 .andThen(elevator.score(ReefLevel.LEVEL_4))
         );
 
-        m_Chooser.addOption("blue barge wing", 
-            new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                false));
-        
-        m_Chooser.addOption("red barge wing", 
-            new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                true));
+        Supplier<Boolean> isRedSupplier = () -> {
+            return DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+        };
 
-        m_Chooser.addOption("blue other barge wing", 
-            new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                false));
-        
-        m_Chooser.addOption("red other barge wing", 
-            new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                true));
+        Supplier<Command> bargeAutoCommand = () -> {
+            return new TeamBargeWingAuto(drivetrain, elevator, dispenser, isRedSupplier.get());
+        };
+
+        Supplier<Command> otherBargeAutoCommand = () -> {
+            return new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, isRedSupplier.get());
+        };
+
+        m_Chooser.addOption("barge wing", 
+            Commands.defer(
+                bargeAutoCommand, Set.of(drivetrain, elevator, dispenser)
+            )
+        );
+
+        m_Chooser.addOption("other barge wing", 
+            Commands.defer(
+                otherBargeAutoCommand, Set.of(drivetrain, elevator, dispenser)
+            )
+        );
     }
 
     private void configureSecondController() {
