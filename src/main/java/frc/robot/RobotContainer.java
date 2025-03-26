@@ -73,19 +73,19 @@ public class RobotContainer {
 
         m_Chooser.addOption("blue barge wing", 
             new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                () -> {return false;}));
+                false));
         
         m_Chooser.addOption("red barge wing", 
             new TeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                () -> {return true;}));
+                true));
 
         m_Chooser.addOption("blue other barge wing", 
             new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                () -> {return false;}));
+                false));
         
         m_Chooser.addOption("red other barge wing", 
             new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, 
-                () -> {return true;}));
+                true));
     }
 
     private void configureSecondController() {

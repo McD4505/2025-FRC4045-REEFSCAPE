@@ -29,7 +29,7 @@ import frc.robot.subsystems.Elevator.ReefLevel;
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
 public class TeamBargeWingAuto extends SequentialCommandGroup {
   /** Creates a new BlueBargeWingAuto. */
-  public TeamBargeWingAuto(CommandSwerveDrivetrain drivetrain, Elevator elevator, Dispenser dispenser, Supplier<Boolean> isRedSupplier) {
+  public TeamBargeWingAuto(CommandSwerveDrivetrain drivetrain, Elevator elevator, Dispenser dispenser, boolean isRed) {
     // Add your commands in the addCommands() call, e.g.
 
     PathPlannerPath startToNearSide;
@@ -57,7 +57,7 @@ public class TeamBargeWingAuto extends SequentialCommandGroup {
 
     int idStation = 13;
     
-    if(isRedSupplier.get()) {
+    if(isRed) {
       idTarget1 = 11;
       idTarget2 = 6;
       idStation = 1;
