@@ -48,9 +48,9 @@ public class Dispenser extends SubsystemBase {
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
   private final double angleSetpointLevel4 = 49 + angleOffset;
 
-  private DigitalInput limitSwitch = new DigitalInput(9);
+  private DigitalInput limitSwitch = new DigitalInput(0);
 
-  private AnalogInput distanceSensor = new AnalogInput(0);
+  // private AnalogInput distanceSensor = new AnalogInput(0);
 
   private ReefLevel level = ReefLevel.BASE;
 
@@ -222,6 +222,5 @@ public class Dispenser extends SubsystemBase {
     SmartDashboard.putNumber("angle encoder", getAngleEncoder().getPosition());
     SmartDashboard.putNumber("angle velocity", getAngleEncoder().getVelocity());
     SmartDashboard.putBoolean("limit switch", isLimitSwitchPressed());
-    SmartDashboard.putNumber("distance sensor", distanceSensor.getVoltage());
   }
 }
