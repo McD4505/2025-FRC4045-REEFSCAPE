@@ -10,6 +10,8 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -53,6 +55,8 @@ public class RobotContainer {
 
     private Dispenser dispenser = elevator.getDispenser();
 
+    CommandXboxController controller2 = new CommandXboxController(1);
+
     public RobotContainer() {
         // NamedCommands.registerCommand("waitForCoral", dispenser.waitForCoralCommand());
         // NamedCommands.registerCommand("score l4", elevator.score(ReefLevel.LEVEL_4));
@@ -84,7 +88,47 @@ public class RobotContainer {
                 () -> {return true;}));
     }
 
+    private void configureSecondController() {
+        Trigger closeTrigger = controller2.a();
+        Trigger farTrigger = controller2.y();
+        Trigger leftTrigger = controller2.x();
+        Trigger rightTrigger = controller2.b();
+        Trigger leftFarTrigger = controller2.x().and(controller2.rightBumper());
+        Trigger rightFarTrigger = controller2.b().and(controller2.rightBumper());
+
+        Trigger leftStationTrigger = controller2.povLeft();
+        Trigger rightStationTrigger = controller2.povRight();
+
+        closeTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(18)));  // close
+        farTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(21)));  // far
+
+        leftTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(19)));  // left close
+        rightTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(17)));  // right close
+
+        leftFarTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(20)));  // left far
+        rightFarTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(22)));  // right far
+
+        leftStationTrigger.onTrue(drivetrain.pathfindToPose(Vision.getStationPose(13)));  // left station
+        rightStationTrigger.onTrue(drivetrain.pathfindToPose(Vision.getStationPose(12)));  // right station
+
+        Trigger isRedTrigger = new Trigger(() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red);
+
+        closeTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(7)));  // close
+        farTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(10)));  // far
+
+        leftTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(6)));  // left close
+        rightTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(8)));  // right close
+
+        leftFarTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(11)));  // left far
+        rightFarTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(9)));  // right far
+
+        leftStationTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getStationPose(1)));  // left station
+        rightStationTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getStationPose(2)));  // right station
+    }
+
     private void configureBindings() {
+        configureSecondController();
+        
         joystick.povLeft().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, true)));
         joystick.povRight().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, false)));
 

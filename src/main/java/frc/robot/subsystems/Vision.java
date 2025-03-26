@@ -38,6 +38,11 @@ public class Vision extends SubsystemBase {
     return transformFromTag(tagId, transform);
   }
 
+  public static Pose2d getPreScoringPose(int tagId) {
+    Transform2d transform = FieldUtil.getPreScoringTransform();
+    return transformFromTag(tagId, transform);
+  }
+
   public static Pose2d getStationPose(int tagId) {
     Transform2d transform = FieldUtil.getStationTransform();
     return transformFromTag(tagId, transform);

@@ -39,4 +39,10 @@ public class FieldUtil {
 
         return new Transform2d(baseTranslation, Rotation2d.fromDegrees(0));
     }
+
+    public static Transform2d getPreScoringTransform() {
+        Translation2d baseTranslation = new Translation2d(1, 0);
+
+        return new Transform2d(baseTranslation, Rotation2d.fromDegrees(180));
+    }
 }
