@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.FieldUtil.ReefSide;
 import frc.robot.autos.OtherTeamBargeWingAuto;
 import frc.robot.autos.TeamBargeWingAuto;
 import frc.robot.commands.DriveToTargetPose;
@@ -101,6 +102,20 @@ public class RobotContainer {
         );
     }
 
+    private Command pathfindToSide(ReefSide side) {
+        Supplier<Boolean> isRedSupplier = () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red;
+        // stations
+        if(side == ReefSide.LEFT_STATION || side == ReefSide.RIGHT_STATION) {
+            return Commands.defer(() -> {
+                return drivetrain.pathfindToPose(FieldUtil.getStationPose(side, isRedSupplier.get()));
+            }, Set.of(drivetrain));
+        }
+        // reef sides
+        return Commands.defer(() -> {
+            return drivetrain.pathfindToPose(FieldUtil.getPreScoringPose(side, isRedSupplier.get()));
+        }, Set.of(drivetrain));
+    }
+
     private void configureSecondController() {
         Trigger closeTrigger = controller2.a();
         Trigger farTrigger = controller2.y();
@@ -112,31 +127,16 @@ public class RobotContainer {
         Trigger leftStationTrigger = controller2.povLeft();
         Trigger rightStationTrigger = controller2.povRight();
 
-        closeTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(18)));  // close
-        farTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(21)));  // far
+        closeTrigger.onTrue(pathfindToSide(ReefSide.CLOSE));  // close
+        farTrigger.onTrue(pathfindToSide(ReefSide.FAR));  // far
+        leftTrigger.onTrue(pathfindToSide(ReefSide.LEFT_CLOSE));  // left close
+        rightTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_CLOSE));  // right close
 
-        leftTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(19)));  // left close
-        rightTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(17)));  // right close
+        leftFarTrigger.onTrue(pathfindToSide(ReefSide.LEFT_FAR));  // left far
+        rightFarTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_FAR));  // right far
 
-        leftFarTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(20)));  // left far
-        rightFarTrigger.onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(22)));  // right far
-
-        leftStationTrigger.onTrue(drivetrain.pathfindToPose(Vision.getStationPose(13)));  // left station
-        rightStationTrigger.onTrue(drivetrain.pathfindToPose(Vision.getStationPose(12)));  // right station
-
-        Trigger isRedTrigger = new Trigger(() -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red);
-
-        closeTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(7)));  // close
-        farTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(10)));  // far
-
-        leftTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(6)));  // left close
-        rightTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(8)));  // right close
-
-        leftFarTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(11)));  // left far
-        rightFarTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getPreScoringPose(9)));  // right far
-
-        leftStationTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getStationPose(1)));  // left station
-        rightStationTrigger.and(isRedTrigger).onTrue(drivetrain.pathfindToPose(Vision.getStationPose(2)));  // right station
+        leftStationTrigger.onTrue(pathfindToSide(ReefSide.LEFT_STATION));  // left station
+        rightStationTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_STATION));  // right station
     }
 
     private void configureBindings() {

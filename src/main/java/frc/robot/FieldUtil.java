@@ -4,15 +4,59 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.Vision;
 
 /** Add your docs here. */
 
 public class FieldUtil {
 
+    public static enum ReefSide {
+        CLOSE, FAR, LEFT_CLOSE, LEFT_FAR, RIGHT_CLOSE, RIGHT_FAR, LEFT_STATION, RIGHT_STATION
+    }
+
+    public static int getTagId(ReefSide side, boolean isRed) {
+        int id = 0;
+        switch (side) {
+            case CLOSE:
+                id = isRed ? 7 : 18;
+                break;
+            case FAR:
+                id = isRed ? 10 : 21;
+                break;
+            case LEFT_CLOSE:
+                id = isRed ? 6 : 19;
+                break;
+            case LEFT_FAR:
+                id = isRed ? 11 : 20;
+                break;
+            case RIGHT_CLOSE:
+                id = isRed ? 8 : 17;
+                break;
+            case RIGHT_FAR:
+                id = isRed ? 9 : 22;
+                break;
+            case LEFT_STATION:
+                id = isRed ? 1 : 13;
+                break;
+            case RIGHT_STATION:
+                id = isRed ? 2 : 12;
+                break;
+        }
+        return id;
+    }
+
+    public static Pose2d getPreScoringPose(ReefSide side, boolean isRed) {
+        return Vision.getPreScoringPose(getTagId(side, isRed));
+    }
+
+    public static Pose2d getStationPose(ReefSide side, boolean isRed) {
+        return Vision.getStationPose(getTagId(side, isRed));
+    }
 
     public static Transform2d getScoringTransform(boolean isLeft) {
         int sign = isLeft ? -1 : 1;
