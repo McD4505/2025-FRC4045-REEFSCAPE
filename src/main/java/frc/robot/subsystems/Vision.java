@@ -12,10 +12,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.FieldUtil;
@@ -118,11 +115,11 @@ public class Vision extends SubsystemBase {
   public static void addVisionMeasurementMT1(CommandSwerveDrivetrain drivetrain, String limelightName) {
     var mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
 
-    if (mt1 != null && mt1.tagCount > 0) {
-      double distance = LimelightHelpers.getTargetPose3d_RobotSpace(limelightName).getTranslation().getNorm();
-      double stdDev = Math.min(distance/2, 3.0) / mt1.tagCount;
+    if (mt1 != null && mt1.tagCount > 0 && mt1.rawFiducials[0].ambiguity < 0.5) {
+      double distance = mt1.avgTagDist;
+      double stdDev = Math.min(distance, 5.0) / mt1.tagCount;
 
-      drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, stdDev * 5));
+      drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, stdDev * 10));
       drivetrain.addVisionMeasurement(mt1.pose, Utils.fpgaToCurrentTime(mt1.timestampSeconds));
     }
   }
@@ -130,7 +127,7 @@ public class Vision extends SubsystemBase {
   public static void addVisionMeasurementMT2(CommandSwerveDrivetrain drivetrain, String limelightName, double omegaRps) {
     var mt2 = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("limelight");
     if (mt2 != null && mt2.tagCount > 0 && omegaRps < 2.0) {
-      double distance = LimelightHelpers.getTargetPose3d_RobotSpace(limelightName).getTranslation().getNorm();
+      double distance = mt2.avgTagDist;
       double stdDev = Math.min(distance/4, 3.0) / mt2.tagCount;
 
       drivetrain.setVisionMeasurementStdDevs(VecBuilder.fill(stdDev, stdDev, 999999));
