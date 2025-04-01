@@ -16,6 +16,7 @@ import com.pathplanner.lib.util.FileVersionException;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.commands.DriveToTargetPose;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -84,19 +85,20 @@ public class TeamBargeWingAuto extends SequentialCommandGroup {
       // drive to station-side reef side and score left
       // AutoBuilder.followPath(stationToNearStationSide),
       new DriveToTargetPose(drivetrain, nearStationScoringPoseRight).withTimeout(4),
+      new PrintCommand("Driving to reef side"),
       elevator.score(ReefLevel.LEVEL_4),
-      elevator.setTargetCommand(ReefLevel.INTAKE)
+      elevator.setTargetCommand(ReefLevel.INTAKE),
       
       // // drive to station and wait for coral
       // // AutoBuilder.followPath(nearStationSideToStation),
-      // new DriveToTargetPose(drivetrain, stationPose).withTimeout(4),
-      // dispenser.waitForCoralCommand().withTimeout(2),
-      // elevator.setTargetCommand(ReefLevel.BASE),
+      new DriveToTargetPose(drivetrain, stationPose).withTimeout(4),
+      dispenser.waitForCoralCommand().withTimeout(2),
+      elevator.setTargetCommand(ReefLevel.BASE),
 
       // // drive to station-side reef side and score right
       // // AutoBuilder.followPath(stationToNearStationSide),
-      // new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft).withTimeout(4),
-      // elevator.score(ReefLevel.LEVEL_4)
+      new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft).withTimeout(4),
+      elevator.score(ReefLevel.LEVEL_4)
     );
   }
 }

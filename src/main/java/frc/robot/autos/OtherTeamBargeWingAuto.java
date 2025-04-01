@@ -85,18 +85,18 @@ public class OtherTeamBargeWingAuto extends SequentialCommandGroup {
       // AutoBuilder.followPath(stationToNearStationSide),
       new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft).withTimeout(4),
       elevator.score(ReefLevel.LEVEL_4),
-      elevator.setTargetCommand(ReefLevel.INTAKE)
+      elevator.setTargetCommand(ReefLevel.INTAKE),
       
       // // drive to station and wait for coral
       // // AutoBuilder.followPath(nearStationSideToStation),
-      // new DriveToTargetPose(drivetrain, stationPose).withTimeout(4),
-      // dispenser.waitForCoralCommand().withTimeout(2),
-      // elevator.setTargetCommand(ReefLevel.BASE),
+      new DriveToTargetPose(drivetrain, stationPose).withTimeout(4),
+      dispenser.waitForCoralCommand().withTimeout(2),
+      elevator.setTargetCommand(ReefLevel.BASE),
 
       // // drive to station-side reef side and score right
       // // AutoBuilder.followPath(stationToNearStationSide),
-      // new DriveToTargetPose(drivetrain, nearStationScoringPoseRight).withTimeout(4),
-      // elevator.score(ReefLevel.LEVEL_4)
+      new DriveToTargetPose(drivetrain, nearStationScoringPoseRight).withTimeout(4),
+      elevator.score(ReefLevel.LEVEL_4)
     );
   }
 }

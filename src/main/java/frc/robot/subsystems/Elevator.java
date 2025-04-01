@@ -18,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.AddressableLedStrip.LEDState;
 
@@ -78,7 +79,7 @@ public class Elevator extends SubsystemBase {
     config
       .inverted(false)
       .idleMode(IdleMode.kBrake)
-      .smartCurrentLimit(35)
+      .smartCurrentLimit(30)
       .voltageCompensation(12);
 
     config.encoder
@@ -87,9 +88,12 @@ public class Elevator extends SubsystemBase {
 
     config.closedLoop
       .p(2)
-      .i(0.0001)
+      .i(0.005)
       .d(0)
-      .outputRange(-0.3, 1);
+      .outputRange(-0.40, 1)
+      .velocityFF(0.06)
+      .iMaxAccum(0.1)
+      .iZone(0.05);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
  
@@ -115,18 +119,26 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // soften elevator landing
-    boolean isCloseToBase = level == ReefLevel.BASE && getHeight() < baseHeight + 0.1;
-    if(level == ReefLevel.DISABLED || isCloseToBase) {
-      disablePID();
+    if(level == ReefLevel.BASE && getHeight() < baseHeight + 0.1 && Math.abs(lift.getEncoder().getVelocity()) < 0.002) {
+      // if the elevator is at the base and not moving, we can safely reset the position
+      resetPosition();
     }
 
     // update dispenser state (avoiding intake while going up)
     updateDispenserState();
 
-    // update elevator state (waiting for dispenser before extending)
-    // updateElevatorState();
+    SmartDashboard.putNumber("elevator output", lift.getAppliedOutput());
     SmartDashboard.putNumber("elevator height error", getHeight() - getHeightSetpoint());
+  }
+
+  public boolean shouldDisablePID() {
+    return level == ReefLevel.DISABLED || (level == ReefLevel.BASE && getHeight() < baseHeight + 0.15);
+  }
+
+  public Command disablePIDCommand() {
+    return new InstantCommand(() -> {
+      disablePID();
+    });
   }
 
   public boolean hasCoralChanged() {
@@ -138,7 +150,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command updateLEDIntakeStateCommand() {
-    return runOnce(() -> {
+    return new InstantCommand(() -> {
       updateLEDIntakeState();
     });
   }
@@ -153,7 +165,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public boolean isElevatorAtBase() {
-    return getHeight() < 0.03;
+    return getHeight() < baseHeight + 0.03;
   }
 
   public double getHeight() {
@@ -171,11 +183,11 @@ public class Elevator extends SubsystemBase {
    * @return the command to be scheduled
    */
   public Command waitToReachSetpointCommand() {
-    return Commands.waitUntil(() -> atSetpoint());
+    return Commands.waitUntil(this::atSetpoint);
   }
 
   public Command waitUntilCloseToBaseCommand() {
-    return Commands.waitUntil(() -> getHeight() < baseHeight + 0.15);
+    return Commands.waitUntil(() -> getHeight() < baseHeight + 1.5);
   }
 
   /**
@@ -211,7 +223,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command resetLiftCommand() {
-    return runOnce(() -> {
+    return new InstantCommand(() -> {
       resetElevator();
     });
   }
@@ -264,7 +276,7 @@ public class Elevator extends SubsystemBase {
    * Use current height and target level to determine if dispenser should avoid the intake
    * @return true if dispenser should avoid intake; false otherwise
    */
-  private boolean shouldAvoidIntake() {
+  public boolean shouldAvoidIntake() {
     boolean isException = 
       level == ReefLevel.INTAKE ||
       level == ReefLevel.STOWED ||
@@ -286,16 +298,8 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putBoolean("avoid intake", shouldAvoidIntake());
   }
 
-  public void updateElevatorState() {
-    if(shouldAvoidIntake() && !dispenser.atSetpoint()) {
-      setTarget(ReefLevel.BASE);
-    } else {
-      setTarget(level);
-    }
-  }
-
   public boolean atSetpoint() {
-    return Math.abs(getHeight() - heightSetpoint) < 0.02;
+    return Math.abs(getHeight() - heightSetpoint) < 0.01;
   }
 
   public void resetElevator() {
@@ -312,7 +316,7 @@ public class Elevator extends SubsystemBase {
   }
 
   public Command zeroAngleMotorCommand() {
-    return runOnce(() -> {
+    return new InstantCommand(() -> {
       dispenser.zeroAngleMotor();
     });
   }

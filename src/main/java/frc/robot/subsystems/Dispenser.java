@@ -8,6 +8,10 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+
+import java.util.Set;
+
+import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -21,6 +25,8 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ReefLevel;
 
@@ -44,11 +50,11 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleSetpointStowed = 0;
   private final double angleSetpointBase = 68 + angleOffset;
-  private final double angleSetpointIntake = 39 + angleOffset;
+  private final double angleSetpointIntake = 38 + angleOffset;
   private final double angleSetpointLevel2and3 = 30 + angleOffset;
   private final double angleSetpointLevel4 = 49 + angleOffset;
 
-  private DigitalInput limitSwitch = new DigitalInput(0);
+  private DigitalInput limitSwitch = new DigitalInput(9);
 
   // private AnalogInput distanceSensor = new AnalogInput(0);
 
@@ -100,17 +106,18 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-      .p(0.01)
-      .i(0.0000000003)
+      .p(0.015)
+      .i(0.00005)
       .d(0)
       .maxOutput(0.25)
-      .minOutput(-0.25);
-      // .feedbackSensor(FeedbackSensor.kAlternateOrExternalEncoder);
+      .minOutput(-0.25)
+      .iZone(5)
+      .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
 
-    config.alternateEncoder
-      .positionConversionFactor(192.75)
-      .velocityConversionFactor(192.75)
-      .setSparkMaxDataPortConfig();
+    config.absoluteEncoder
+      .setSparkMaxDataPortConfig()
+      .positionConversionFactor(360)
+      .velocityConversionFactor(360);
 
     angleMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -125,7 +132,6 @@ public class Dispenser extends SubsystemBase {
   }
 
   public RelativeEncoder getAngleEncoder() {
-    // return angleMotor.getAlternateEncoder();
     return angleMotor.getEncoder();
   }
 
@@ -196,7 +202,7 @@ public class Dispenser extends SubsystemBase {
    * @return the command to be scheduled
    */
   public Command waitForCoralCommand() {
-    return Commands.waitUntil(() -> hasCoral());
+    return Commands.waitUntil(this::hasCoral);
   }
 
   /**
@@ -204,16 +210,16 @@ public class Dispenser extends SubsystemBase {
    * @return the command to be scheduled
    */
   public Command dispenseCommand() {
-    return Commands.sequence(
-      setSpeedCommand(0.5),
-      Commands.waitUntil(() -> !hasCoral()),
-      Commands.waitSeconds(0.25),
-      setSpeedCommand(0)
-    );
+      return Commands.sequence(
+        setSpeedCommand(0.5),
+        Commands.waitUntil(() -> !hasCoral()).withTimeout(2),
+        Commands.waitSeconds(0.5),
+        setSpeedCommand(0)
+      );
   }
 
   public Command zeroAngleMotorCommand() {
-    return runOnce(() -> zeroAngleMotor());
+    return new InstantCommand(() -> zeroAngleMotor());
   }
 
   @Override
@@ -222,5 +228,6 @@ public class Dispenser extends SubsystemBase {
     SmartDashboard.putNumber("angle encoder", getAngleEncoder().getPosition());
     SmartDashboard.putNumber("angle velocity", getAngleEncoder().getVelocity());
     SmartDashboard.putBoolean("limit switch", isLimitSwitchPressed());
+    SmartDashboard.putNumber("absolute encoder", angleMotor.getAbsoluteEncoder().getPosition());
   }
 }

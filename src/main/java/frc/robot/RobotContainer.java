@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -117,6 +118,8 @@ public class RobotContainer {
     }
 
     private void configureSecondController() {
+        controller2.leftBumper().onTrue(elevator.score(ReefLevel.LEVEL_4));
+
         Trigger closeTrigger = controller2.a();
         Trigger farTrigger = controller2.y();
         Trigger leftCloseTrigger = controller2.x();
@@ -139,8 +142,32 @@ public class RobotContainer {
         rightStationTrigger.onTrue(pathfindToSide(ReefSide.RIGHT_STATION));  // right station
     }
 
+    private void configureArbitraryTriggers() {
+        // avoid intake trigger
+        // Trigger avoidIntakeTrigger = new Trigger(elevator::shouldAvoidIntake);
+        // avoidIntakeTrigger.whileTrue(dispenser.setAngleTargetCommand(ReefLevel.BASE).ignoringDisable(true).repeatedly());
+        // avoidIntakeTrigger.whileFalse(dispenser.setAngleTargetCommand(elevator.getLevel()).ignoringDisable(true).repeatedly());
+        // avoidIntakeTrigger.onChange(new PrintCommand("avoid intake changed"));
+
+        // disable elevator PID trigger
+        Trigger disableElevatorPIDTrigger = new Trigger(elevator::shouldDisablePID);
+        disableElevatorPIDTrigger.onTrue(elevator.disablePIDCommand().ignoringDisable(true));
+        disableElevatorPIDTrigger.onChange(new PrintCommand("disable elevator PID changed"));
+
+        // zero angle motor trigger
+        Trigger zeroAngleMotorTrigger = new Trigger(() -> 
+            dispenser.isLimitSwitchPressed() && 
+            (elevator.getLevel() == ReefLevel.BASE || elevator.getLevel() == ReefLevel.STOWED));
+        zeroAngleMotorTrigger.onTrue(dispenser.zeroAngleMotorCommand().ignoringDisable(true));
+        
+        // LED intake trigger
+        Trigger ledIntakeTrigger = new Trigger(elevator::hasCoralChanged);
+        ledIntakeTrigger.onTrue(elevator.updateLEDIntakeStateCommand().ignoringDisable(true));
+    }
+
     private void configureBindings() {
         configureSecondController();
+        configureArbitraryTriggers();
         
         joystick.povLeft().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, true)));
         joystick.povRight().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, false)));
@@ -201,19 +228,7 @@ public class RobotContainer {
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
         .andThen(drivetrain.recalculateOperatorPerspectiveCommand()));
 
-        drivetrain.registerTelemetry(logger::telemeterize);
-
-        // automatic triggers
-        // zero angle motor trigger
-        Trigger zeroAngleMotorTrigger = new Trigger(() -> 
-            dispenser.isLimitSwitchPressed() && 
-            (elevator.getLevel() == ReefLevel.BASE || elevator.getLevel() == ReefLevel.STOWED));
-
-        zeroAngleMotorTrigger.whileTrue(dispenser.zeroAngleMotorCommand().ignoringDisable(true));
-        
-        // LED intake trigger
-        Trigger ledIntakeTrigger = new Trigger(elevator::hasCoralChanged);
-        ledIntakeTrigger.onTrue(elevator.updateLEDIntakeStateCommand().ignoringDisable(true));
+        drivetrain.registerTelemetry(logger::telemeterize);        
     }
 
     public Command getAutonomousCommand() {

@@ -35,7 +35,7 @@ public class DriveToTargetPose extends Command {
 
   private boolean useDrivetrainTarget = true;
 
-  private final double maxSpeed = 3.5; // m/s
+  private final double maxSpeed = 4.5; // m/s
 
   /** Creates a new DriveToTargetPose. */
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain) {
