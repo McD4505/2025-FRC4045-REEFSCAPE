@@ -38,23 +38,23 @@ public class BargeWingAuto extends SequentialCommandGroup {
       elevator.setTargetCommand(ReefLevel.INTAKE),
 
       // drive to station and wait for coral
-      new DriveToTargetPose(drivetrain, stationPose).withTimeout(3),
+      new DriveToTargetPose(drivetrain, stationPose).withTimeout(3).raceWith(dispenser.waitForCoralCommand()),
       dispenser.waitForCoralCommand().withTimeout(2),
       elevator.setTargetCommand(ReefLevel.BASE),
 
       // drive to station-side reef side and score left
       new DriveToTargetPose(drivetrain, nearStationScoringPoseRight).withTimeout(4),
-      elevator.score(ReefLevel.LEVEL_4),
+      elevator.score(ReefLevel.LEVEL_3),
       elevator.setTargetCommand(ReefLevel.INTAKE),
       
       // drive to station and wait for coral
-      new DriveToTargetPose(drivetrain, stationPose).withTimeout(4),
+      new DriveToTargetPose(drivetrain, stationPose).withTimeout(4).raceWith(dispenser.waitForCoralCommand()),
       dispenser.waitForCoralCommand().withTimeout(2),
       elevator.setTargetCommand(ReefLevel.BASE),
 
       // drive to station-side reef side and score right
       new DriveToTargetPose(drivetrain, nearStationScoringPoseLeft).withTimeout(4),
-      elevator.score(ReefLevel.LEVEL_4)
+      elevator.score(ReefLevel.LEVEL_3)
     );
   }
 }
