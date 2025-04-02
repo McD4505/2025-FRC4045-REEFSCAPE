@@ -9,9 +9,6 @@ import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
-import java.util.Set;
-
-import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -20,13 +17,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.Elevator.ReefLevel;
 
@@ -46,13 +41,13 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleConversionFactor = 360 / angleGearRatio * 1.25;  // degrees/rot_motor
 
-  private final double angleOffset = -2;
+  private final double angleOffset = 0;
 
   private final double angleSetpointStowed = 0;
-  private final double angleSetpointBase = 68 + angleOffset;
-  private final double angleSetpointIntake = 38 + angleOffset;
-  private final double angleSetpointLevel2and3 = 30 + angleOffset;
-  private final double angleSetpointLevel4 = 49 + angleOffset;
+  private final double angleSetpointBase = 66 + angleOffset;
+  private final double angleSetpointIntake = 36 + angleOffset;
+  private final double angleSetpointLevel2and3 = 28 + angleOffset;
+  private final double angleSetpointLevel4 = 47 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
 
