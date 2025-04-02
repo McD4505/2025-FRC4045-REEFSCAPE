@@ -35,17 +35,18 @@ public class Dispenser extends SubsystemBase {
   private SparkClosedLoopController angleController = angleMotor.getClosedLoopController();
 
   private final double wheelRadius = Units.inchesToMeters(2);
-  private final double conversionFactor = 2 * Math.PI * wheelRadius;
+  private final double wheelGearRatio = 4/1;
+  private final double conversionFactor = 2 * Math.PI * wheelRadius / wheelGearRatio / 60;  // meters/rot_motor
 
   private final double angleGearRatio = 15/1;
 
   private final double angleConversionFactor = 360 / angleGearRatio * 1.25;  // degrees/rot_motor
 
-  private final double angleOffset = 0;
+  private final double angleOffset = 300;
 
-  private final double angleSetpointStowed = 0;
+  private final double angleSetpointStowed = 0 + angleOffset;
   private final double angleSetpointBase = 66 + angleOffset;
-  private final double angleSetpointIntake = 36 + angleOffset;
+  private final double angleSetpointIntake = 35 + angleOffset;
   private final double angleSetpointLevel2and3 = 28 + angleOffset;
   private final double angleSetpointLevel4 = 47 + angleOffset;
 
@@ -82,9 +83,10 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-    .p(0.4)
-    .i(0)
-    .d(0);
+    .p(0.1)
+    .i(0.001)
+    .d(0)
+    .iMaxAccum(0.5);
 
     dispenser.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -101,13 +103,15 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-      .p(0.015)
-      .i(0.00005)
+      .p(0.01)
+      .i(0)
       .d(0)
       .maxOutput(0.25)
       .minOutput(-0.25)
-      .iZone(5)
-      .feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+      .iZone(2)
+      .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
+      .positionWrappingEnabled(true)
+      .positionWrappingInputRange(angleOffset - 360, angleOffset);
 
     config.absoluteEncoder
       .setSparkMaxDataPortConfig()
@@ -118,7 +122,7 @@ public class Dispenser extends SubsystemBase {
   }
 
   public void setSpeed(double percent) {
-    controller.setReference(percent, ControlType.kDutyCycle);
+    controller.setReference(percent, ControlType.kVelocity);
   }
 
   public void setAngle(double angle) {
@@ -185,7 +189,7 @@ public class Dispenser extends SubsystemBase {
   }
 
   public double getAngle() {
-    return angleMotor.getEncoder().getPosition();
+    return angleMotor.getAbsoluteEncoder().getPosition();
   }
 
   public boolean atSetpoint() {
@@ -223,6 +227,7 @@ public class Dispenser extends SubsystemBase {
     SmartDashboard.putNumber("angle encoder", getAngleEncoder().getPosition());
     SmartDashboard.putNumber("angle velocity", getAngleEncoder().getVelocity());
     SmartDashboard.putBoolean("limit switch", isLimitSwitchPressed());
-    SmartDashboard.putNumber("absolute encoder", angleMotor.getAbsoluteEncoder().getPosition());
+    SmartDashboard.putNumber("absolute encoder", getAngle());
+    SmartDashboard.putNumber("dispenser velocity", dispenser.getEncoder().getVelocity());
   }
 }

@@ -199,10 +199,10 @@ public class RobotContainer {
 
         joystick.start().and(joystick.y()).onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_2));
 
-        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(0.5));
+        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(4));
         joystick.rightBumper().onFalse(dispenser.setSpeedCommand(0));
 
-        joystick.rightTrigger().onTrue(dispenser.setSpeedCommand(-0.75));
+        joystick.rightTrigger().onTrue(dispenser.setSpeedCommand(-4));
         joystick.rightTrigger().onFalse(dispenser.setSpeedCommand(0));
 
         joystick.leftTrigger().onTrue(elevator.resetLiftCommand());
