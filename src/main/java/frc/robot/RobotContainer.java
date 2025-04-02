@@ -25,8 +25,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.FieldUtil.ReefSide;
-import frc.robot.autos.OtherTeamBargeWingAuto;
-import frc.robot.autos.TeamBargeWingAuto;
+import frc.robot.autos.BargeWingAuto;
 import frc.robot.commands.DriveToTargetPose;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -83,11 +82,11 @@ public class RobotContainer {
         };
 
         Supplier<Command> bargeAutoCommand = () -> {
-            return new TeamBargeWingAuto(drivetrain, elevator, dispenser, isRedSupplier.get());
+            return new BargeWingAuto(drivetrain, elevator, dispenser, isRedSupplier.get(), false);
         };
 
         Supplier<Command> otherBargeAutoCommand = () -> {
-            return new OtherTeamBargeWingAuto(drivetrain, elevator, dispenser, isRedSupplier.get());
+            return new BargeWingAuto(drivetrain, elevator, dispenser, isRedSupplier.get(), true);
         };
 
         m_Chooser.addOption("barge wing", 
