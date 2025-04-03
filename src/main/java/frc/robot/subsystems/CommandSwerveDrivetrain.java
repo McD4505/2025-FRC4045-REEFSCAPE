@@ -336,16 +336,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         return pathfindingCommand;
     }
     
-    public Command pathfindToRobotTarget() {
-        Pose2d target = getTargetPose();
-    
-        DriverStation.reportWarning("Target pose: " + target.toString(), false);
-    
-        // if(target.equals(new Pose2d())) {
-        //     return new PrintCommand("Could not find valid target pose");
-        // }
-    
-        return pathfindToPose(target);
+    public double distanceTo(Pose2d pose) {
+        return getState().Pose.getTranslation().getDistance(pose.getTranslation());
     }
     
 }
