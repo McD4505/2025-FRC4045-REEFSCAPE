@@ -48,7 +48,7 @@ public class Dispenser extends SubsystemBase {
   private final double angleSetpointBase = 66 + angleOffset;
   private final double angleSetpointIntake = 35 + angleOffset;
   private final double angleSetpointLevel2and3 = 28 + angleOffset;
-  private final double angleSetpointLevel4 = 47 + angleOffset;
+  private final double angleSetpointLevel4 = 45 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
 
@@ -104,7 +104,7 @@ public class Dispenser extends SubsystemBase {
 
     config.closedLoop
       .p(0.01)
-      .i(0)
+      .i(0.0001)
       .d(0)
       .maxOutput(0.25)
       .minOutput(-0.25)
@@ -210,7 +210,7 @@ public class Dispenser extends SubsystemBase {
    */
   public Command dispenseCommand() {
       return Commands.sequence(
-        setSpeedCommand(0.5),
+        setSpeedCommand(4),
         Commands.waitUntil(() -> !hasCoral()).withTimeout(2),
         Commands.waitSeconds(0.5),
         setSpeedCommand(0)
