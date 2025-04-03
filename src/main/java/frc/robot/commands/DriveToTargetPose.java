@@ -4,11 +4,15 @@
 
 package frc.robot.commands;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -80,9 +84,18 @@ public class DriveToTargetPose extends Command {
     double xSpeedUncapped = xController.calculate(currentPose.getX());
     double ySpeedUncapped = yController.calculate(currentPose.getY());
     
-    // clamp x and y speeds
-    double xSpeed = Math.max(-maxSpeed, Math.min(xSpeedUncapped, maxSpeed));
-    double ySpeed = Math.max(-maxSpeed, Math.min(ySpeedUncapped, maxSpeed));
+    // normalize and scale x and y speeds
+    double totalSpeedUncapped = Math.sqrt(xSpeedUncapped * xSpeedUncapped + ySpeedUncapped * ySpeedUncapped);
+    double xSpeed;
+    double ySpeed;
+    
+    if(totalSpeedUncapped > maxSpeed) {
+      xSpeed = xSpeedUncapped / totalSpeedUncapped * maxSpeed;
+      ySpeed = ySpeedUncapped / totalSpeedUncapped * maxSpeed;
+    } else {
+      xSpeed = xSpeedUncapped;
+      ySpeed = ySpeedUncapped;
+    }
 
     // normalize pose angle to be between 0 and 360
     double normalizedAngle = currentPose.getRotation().getDegrees() % 360;
