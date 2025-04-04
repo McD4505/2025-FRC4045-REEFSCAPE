@@ -46,13 +46,11 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleSetpointStowed = 0 + angleOffset;
   private final double angleSetpointBase = 66 + angleOffset;
-  private final double angleSetpointIntake = 35 + angleOffset;
+  private final double angleSetpointIntake = 36 + angleOffset;
   private final double angleSetpointLevel2and3 = 28 + angleOffset;
   private final double angleSetpointLevel4 = 45 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
-
-  // private AnalogInput distanceSensor = new AnalogInput(0);
 
   private ReefLevel level = ReefLevel.BASE;
 
@@ -83,9 +81,10 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-    .p(0.1)
-    .i(0.001)
+    .p(0.02)
+    .i(0)
     .d(0)
+    .velocityFF(0.17)
     .iMaxAccum(0.5);
 
     dispenser.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -103,7 +102,7 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-      .p(0.01)
+      .p(0.006)
       .i(0.0001)
       .d(0)
       .maxOutput(0.25)
@@ -210,9 +209,9 @@ public class Dispenser extends SubsystemBase {
    */
   public Command dispenseCommand() {
       return Commands.sequence(
-        setSpeedCommand(4),
+        setSpeedCommand(3.5),
         Commands.waitUntil(() -> !hasCoral()).withTimeout(2),
-        Commands.waitSeconds(0.5),
+        Commands.waitSeconds(0.35),
         setSpeedCommand(0)
       );
   }

@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -67,6 +68,11 @@ public class Elevator extends SubsystemBase {
 
   private boolean hasCoral = dispenser.hasCoral();
 
+  // Feedforward constants
+  private final double kG = 0.42; // Gravity compensation constant
+  private final double kV = 0.06; // Velocity feedforward constant
+  private final double kS = 0.1; // Static friction constant
+
   public Elevator() {
     configureLift();
     configureLiftFollower();
@@ -78,19 +84,20 @@ public class Elevator extends SubsystemBase {
     config
       .inverted(false)
       .idleMode(IdleMode.kBrake)
-      .smartCurrentLimit(30)
+      .smartCurrentLimit(32)
       .voltageCompensation(12);
+      // .closedLoopRampRate(1);
 
     config.encoder
       .positionConversionFactor(conversionFactor)
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-      .p(2)
-      .i(0.005)
+      .p(2.25)
+      .i(0.001)
       .d(0)
       .outputRange(-0.40, 1)
-      .velocityFF(0.06)
+      .velocityFF(kV)  // Use kV as velocity feedforward
       .iMaxAccum(0.1)
       .iZone(0.05);
 
@@ -173,7 +180,14 @@ public class Elevator extends SubsystemBase {
 
   public void setHeight(double height) {
     heightSetpoint = height;
-    elevatorController.setReference(height, ControlType.kPosition);
+    double gravityFF = kG;  // Constant gravity compensation
+    double staticFF = kS * Math.signum(height - getHeight());  // Static friction compensation
+    elevatorController.setReference(
+      height, 
+      ControlType.kPosition,
+      ClosedLoopSlot.kSlot0,  // PID slot
+      gravityFF + staticFF  // Arbitrary feed forward
+    );
   }
 
   /**
@@ -289,16 +303,22 @@ public class Elevator extends SubsystemBase {
    * otherwise, set dispenser angle to target level
   */
   public void updateDispenserState() {
-    if(shouldAvoidIntake()) {
+    boolean avoidGoingUp = !(level == ReefLevel.INTAKE || level == ReefLevel.STOWED || level == ReefLevel.DISABLED);  // if going up
+    boolean avoidGoingDown = level == ReefLevel.BASE || level == ReefLevel.INTAKE || level == ReefLevel.DISABLED;
+
+    if(getHeight() < clearIntakeHeight && avoidGoingUp) {
+      dispenser.setAngleTarget(ReefLevel.BASE);
+    } else if(getHeight() > clearIntakeHeight - 0.1 && avoidGoingDown) {
       dispenser.setAngleTarget(ReefLevel.BASE);
     } else {
       dispenser.setAngleTarget(level);
     }
+
     SmartDashboard.putBoolean("avoid intake", shouldAvoidIntake());
   }
 
   public boolean atSetpoint() {
-    return Math.abs(getHeight() - heightSetpoint) < 0.01;
+    return Math.abs(getHeight() - heightSetpoint) < 0.02;
   }
 
   public void resetElevator() {
