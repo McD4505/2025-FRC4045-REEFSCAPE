@@ -115,7 +115,8 @@ public class Vision extends SubsystemBase {
   public static void addVisionMeasurementMT1(CommandSwerveDrivetrain drivetrain, String limelightName) {
     var mt1 = LimelightHelpers.getBotPoseEstimate_wpiBlue(limelightName);
 
-    if (mt1 != null && mt1.tagCount > 0 && mt1.rawFiducials[0].ambiguity < 0.5) {
+    if (mt1 != null && mt1.tagCount > 0 && mt1.rawFiducials[0].ambiguity < 0.5) {  // filter bad data
+      // trust measurement less when farther away
       double distance = mt1.avgTagDist;
       double stdDev = Math.min(distance, 5.0) / mt1.tagCount;
 

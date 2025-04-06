@@ -10,6 +10,7 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
@@ -46,8 +47,8 @@ public class Dispenser extends SubsystemBase {
 
   private final double angleSetpointStowed = 0 + angleOffset;
   private final double angleSetpointBase = 66 + angleOffset;
-  private final double angleSetpointIntake = 36 + angleOffset;
-  private final double angleSetpointLevel2and3 = 28 + angleOffset;
+  private final double angleSetpointIntake = 32 + angleOffset;
+  private final double angleSetpointLevel2and3 = 20 + angleOffset;
   private final double angleSetpointLevel4 = 45 + angleOffset;
 
   private DigitalInput limitSwitch = new DigitalInput(9);
@@ -55,6 +56,18 @@ public class Dispenser extends SubsystemBase {
   private ReefLevel level = ReefLevel.BASE;
 
   private double angleSetpoint = angleSetpointBase;
+
+  // wheel PID constants
+  private final double kPWheel = 0.02;
+  private final double kIWheel = 0;
+  private final double kDWheel = 0;
+  private final double kVWheel = 0.17;
+
+  // angle PID constants
+  private final double kPAngle = 0.01;
+  private final double kIAngle = 0.00001;
+  private final double kDAngle = 0;
+  private final double kVAngle = 0;
 
   /** Creates a new Dispenser. */
   public Dispenser() {
@@ -77,15 +90,16 @@ public class Dispenser extends SubsystemBase {
       .idleMode(IdleMode.kBrake);
       
     config.encoder
-      .positionConversionFactor(conversionFactor)
+      .positionConversionFactor(conversionFactor * 60)
       .velocityConversionFactor(conversionFactor);
 
     config.closedLoop
-    .p(0.02)
-    .i(0)
-    .d(0)
-    .velocityFF(0.17)
-    .iMaxAccum(0.5);
+    .p(kPWheel)
+    .i(kIWheel)
+    .d(kDWheel)
+    .velocityFF(kVWheel)
+    .iMaxAccum(0.5)
+    .p(3, ClosedLoopSlot.kSlot1);
 
     dispenser.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
   }
@@ -102,11 +116,12 @@ public class Dispenser extends SubsystemBase {
       .velocityConversionFactor(angleConversionFactor);
 
     config.closedLoop
-      .p(0.006)
-      .i(0.0001)
-      .d(0)
-      .maxOutput(0.25)
-      .minOutput(-0.25)
+      .p(kPAngle)
+      .i(kIAngle)
+      .d(kDAngle)
+      .velocityFF(kVAngle)
+      .maxOutput(0.2)
+      .minOutput(-0.2)
       .iZone(2)
       .feedbackSensor(FeedbackSensor.kAbsoluteEncoder)
       .positionWrappingEnabled(true)
@@ -122,6 +137,24 @@ public class Dispenser extends SubsystemBase {
 
   public void setSpeed(double percent) {
     controller.setReference(percent, ControlType.kVelocity);
+  }
+
+  public Command stopCommand() {
+    return runOnce(() -> {
+      controller.setReference(0, ControlType.kDutyCycle);
+    });
+  }
+
+  public Command turnWheelSlightlyCommand() {
+    return Commands.sequence(
+      Commands.waitSeconds(0.1),
+      new InstantCommand(() -> {
+        dispenser.getEncoder().setPosition(0);
+      }),
+      new InstantCommand(() -> {
+        controller.setReference(0.12, ControlType.kPosition, ClosedLoopSlot.kSlot1);
+      })
+    );
   }
 
   public void setAngle(double angle) {

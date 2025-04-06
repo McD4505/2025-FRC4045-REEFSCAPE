@@ -4,15 +4,12 @@
 
 package frc.robot.commands;
 
-import java.util.function.Supplier;
-
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -21,9 +18,18 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 public class DriveToTargetPose extends Command {
   private final CommandSwerveDrivetrain drivetrain;
 
-  private final PIDController xController = new PIDController(3.5, 0, 0);
-  private final PIDController yController = new PIDController(3.5, 0, 0);
-  private final PIDController thetaController = new PIDController(0.1, 0, 0);
+  private final ProfiledPIDController xController = new ProfiledPIDController(
+    3.5, 0, 0,
+    new TrapezoidProfile.Constraints(4.5, 2.0) // max velocity 4.5 m/s, max acceleration 3.0 m/s^2
+  );
+  private final ProfiledPIDController yController = new ProfiledPIDController(
+    3.5, 0, 0,
+    new TrapezoidProfile.Constraints(4.5, 2.0)
+  );
+  private final ProfiledPIDController thetaController = new ProfiledPIDController(
+    0.1, 0, 0,
+    new TrapezoidProfile.Constraints(360, 90) // max velocity 360 deg/s, max acceleration 180 deg/s^2
+  );
 
   private Pose2d targetPose = new Pose2d();
 
@@ -41,11 +47,11 @@ public class DriveToTargetPose extends Command {
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain) {
     this.drivetrain = drivetrain;
     useDrivetrainTarget = true;
-    // targetPose = drivetrain.getTargetPose();
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drivetrain);
   }
 
+  // This constructor is more useful for auto and predefined positions
   public DriveToTargetPose(CommandSwerveDrivetrain drivetrain, Pose2d targetPose) {
     this.drivetrain = drivetrain;
     this.targetPose = targetPose;
@@ -64,14 +70,24 @@ public class DriveToTargetPose extends Command {
     LimelightHelpers.setLEDMode_ForceOn("limelight-two");
     LimelightHelpers.setLEDMode_ForceOn("limelight");
 
-    xController.setSetpoint(targetPose.getX());
-    yController.setSetpoint(targetPose.getY());
-    thetaController.setSetpoint(targetPose.getRotation().getDegrees());
+    // reset controllers to clear stale data
+    double normalizedAngle = drivetrain.getState().Pose.getRotation().getDegrees() % 360;
+    while(normalizedAngle < 0) normalizedAngle += 360;
+    xController.reset(drivetrain.getState().Pose.getX());
+    yController.reset(drivetrain.getState().Pose.getY());
+    thetaController.reset(normalizedAngle);
 
+    // add setpoints
+    xController.setGoal(targetPose.getX());
+    yController.setGoal(targetPose.getY());
+    thetaController.setGoal(targetPose.getRotation().getDegrees());
+
+    // set tolerances (x, y in meters; angle in degrees)
     xController.setTolerance(0.02);
     yController.setTolerance(0.02);
     thetaController.setTolerance(0.2);
 
+    // make angles 0 and 360 equivalent
     thetaController.enableContinuousInput(0, 360);
   }
 
@@ -80,31 +96,16 @@ public class DriveToTargetPose extends Command {
   public void execute() {
     Pose2d currentPose = drivetrain.getState().Pose;
 
-    // calculate x and y speeds
-    double xSpeedUncapped = xController.calculate(currentPose.getX());
-    double ySpeedUncapped = yController.calculate(currentPose.getY());
-    
-    // normalize and scale x and y speeds
-    double totalSpeedUncapped = Math.sqrt(xSpeedUncapped * xSpeedUncapped + ySpeedUncapped * ySpeedUncapped);
-    double xSpeed;
-    double ySpeed;
-    
-    if(totalSpeedUncapped > maxSpeed) {
-      xSpeed = xSpeedUncapped / totalSpeedUncapped * maxSpeed;
-      ySpeed = ySpeedUncapped / totalSpeedUncapped * maxSpeed;
-    } else {
-      xSpeed = xSpeedUncapped;
-      ySpeed = ySpeedUncapped;
-    }
+    // calculate speeds using profiled controllers
+    double xSpeed = xController.calculate(currentPose.getX());
+    double ySpeed = yController.calculate(currentPose.getY());
 
     // normalize pose angle to be between 0 and 360
     double normalizedAngle = currentPose.getRotation().getDegrees() % 360;
     while(normalizedAngle < 0) normalizedAngle += 360;
     
-    // calculate theta speed
     double thetaSpeed = thetaController.calculate(normalizedAngle);
     
-    // drive with calculated speeds
     drivetrain.applyRequest(() ->
                 drive.withVelocityX(xSpeed)
                     .withVelocityY(ySpeed)
@@ -121,6 +122,6 @@ public class DriveToTargetPose extends Command {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return xController.atSetpoint() && yController.atSetpoint() && thetaController.atSetpoint();
+    return xController.atGoal() && yController.atGoal() && thetaController.atGoal();
   }
 }

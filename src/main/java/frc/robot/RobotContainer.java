@@ -21,7 +21,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.FieldUtil.ReefSide;
@@ -55,8 +54,6 @@ public class RobotContainer {
 
     Vision vision = new Vision();
 
-    // AddressableLedStrip leds = new AddressableLedStrip(1, 10);
-
     private Elevator elevator = new Elevator();
 
     private Dispenser dispenser = elevator.getDispenser();
@@ -64,8 +61,6 @@ public class RobotContainer {
     CommandXboxController controller2 = new CommandXboxController(1);
 
     public RobotContainer() {
-        // NamedCommands.registerCommand("waitForCoral", dispenser.waitForCoralCommand());
-        // NamedCommands.registerCommand("score l4", elevator.score(ReefLevel.LEVEL_4));
 
         configureBindings();
 
@@ -119,6 +114,18 @@ public class RobotContainer {
     private void configureSecondController() {
         controller2.leftBumper().onTrue(elevator.score(ReefLevel.LEVEL_4));
 
+        Command addMeasurement1 = new InstantCommand(() -> {
+            Vision.addVisionMeasurementMT1(drivetrain, "limelight");
+        }).repeatedly();
+        Command addMeasurement2 = new InstantCommand(() -> {
+            Vision.addVisionMeasurementMT1(drivetrain, "limelight-two");
+        }).repeatedly();
+
+        controller2.rightTrigger().whileTrue(addMeasurement1.alongWith(addMeasurement2));
+        controller2.leftTrigger().onTrue(dispenser.setSpeedCommand(1))
+        .onFalse(dispenser.stopCommand());
+        
+
         Trigger closeTrigger = controller2.a();
         Trigger farTrigger = controller2.y();
         Trigger leftCloseTrigger = controller2.x();
@@ -142,12 +149,6 @@ public class RobotContainer {
     }
 
     private void configureArbitraryTriggers() {
-        // avoid intake trigger
-        // Trigger avoidIntakeTrigger = new Trigger(elevator::shouldAvoidIntake);
-        // avoidIntakeTrigger.whileTrue(dispenser.setAngleTargetCommand(ReefLevel.BASE).ignoringDisable(true).repeatedly());
-        // avoidIntakeTrigger.whileFalse(dispenser.setAngleTargetCommand(elevator.getLevel()).ignoringDisable(true).repeatedly());
-        // avoidIntakeTrigger.onChange(new PrintCommand("avoid intake changed"));
-
         // disable elevator PID trigger
         Trigger disableElevatorPIDTrigger = new Trigger(elevator::shouldDisablePID);
         disableElevatorPIDTrigger.onTrue(elevator.disablePIDCommand().ignoringDisable(true));
@@ -162,18 +163,23 @@ public class RobotContainer {
         // LED intake trigger
         Trigger ledIntakeTrigger = new Trigger(elevator::hasCoralChanged);
         ledIntakeTrigger.onTrue(elevator.updateLEDIntakeStateCommand().ignoringDisable(true));
+        
+        // push coral trigger
+        Trigger pushInCoralTrigger = new Trigger(dispenser::hasCoral);
+        pushInCoralTrigger.onTrue(dispenser.turnWheelSlightlyCommand());
     }
 
     private void configureBindings() {
         configureSecondController();
         configureArbitraryTriggers();
         
+        // target left/right branch
         joystick.povLeft().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, true)));
         joystick.povRight().onTrue(new InstantCommand(() -> Vision.targetBranch(drivetrain, false)));
 
         joystick.povDown().onTrue(new InstantCommand(() -> Vision.targetStation(drivetrain)));
         
-        // joystick.povUp().onTrue(new InstantCommand(() -> drivetrain.pathfindToRobotTarget().schedule()));
+        // pathfind button
         joystick.povUp().onTrue(new DriveToTargetPose(drivetrain));
 
         // Note that X is defined as forward according to WPILib convention,
@@ -187,42 +193,29 @@ public class RobotContainer {
             )
         );
 
+        // raise elevator bindings
         joystick.a().onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_3));
         joystick.b().onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_4));
         joystick.x().onTrue(elevator.setTargetCommand(ReefLevel.BASE));
         joystick.y().onTrue(elevator.setTargetCommand(ReefLevel.INTAKE));
+        joystick.start().and(joystick.a()).onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_2));
 
+        // other elevator bindings
         joystick.back().and(joystick.a()).onTrue(elevator.setTargetCommand(ReefLevel.STOWED));
-
         joystick.back().and(joystick.x()).onTrue(elevator.setTargetCommand(ReefLevel.DISABLED));
         joystick.back().and(joystick.b()).onTrue(elevator.setTargetCommand(ReefLevel.HIGH));
 
-        joystick.start().and(joystick.y()).onTrue(elevator.setTargetCommand(ReefLevel.LEVEL_2));
+        // dispenser bindings
+        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(3.5))
+        .onFalse(dispenser.stopCommand());
 
-        joystick.rightBumper().onTrue(dispenser.setSpeedCommand(4));
-        joystick.rightBumper().onFalse(dispenser.setSpeedCommand(0));
-
-        joystick.rightTrigger().onTrue(dispenser.setSpeedCommand(-4));
-        joystick.rightTrigger().onFalse(dispenser.setSpeedCommand(0));
+        joystick.rightTrigger().onTrue(dispenser.setSpeedCommand(-3.5))
+        .onFalse(dispenser.stopCommand());
 
         joystick.leftTrigger().onTrue(elevator.resetLiftCommand());
 
-        joystick.leftStick().onTrue(drivetrain.getDefaultCommand());  // interrupt drivetrain command; useful to cancel pathfinding
+        joystick.leftStick().onTrue(drivetrain.getDefaultCommand());  // interrupt drivetrain command to cancel pathfinding
         
-        joystick.rightStick().onTrue(new InstantCommand(() -> LimelightHelpers.setLEDMode_ForceOn("limelight-two")));
-        joystick.rightStick().onFalse(new InstantCommand(() -> LimelightHelpers.setLEDMode_ForceOff("limelight-two")));
-        // joystick.a().whileTrue(drivetrain.applyRequest(() -> brake));
-        // joystick.b().whileTrue(drivetrain.applyRequest(() ->
-        //     point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
-        // ));
-
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        // joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        // joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        // joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        // joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-
         // reset the field-centric heading on left bumper press
         joystick.leftBumper().onTrue(drivetrain.runOnce(() -> drivetrain.seedFieldCentric())
         .andThen(drivetrain.recalculateOperatorPerspectiveCommand()));

@@ -50,7 +50,7 @@ public class Elevator extends SubsystemBase {
 
   private final double clearIntakeHeight = Units.inchesToMeters(27);
 
-  private final double scoringOffsetL23 = 0.01;  // L2 and L3 have the same angle
+  private final double scoringOffsetL23 = -0.05;  // L2 and L3 have the same angle
   private final double scoringOffsetL4 = 0.09;  // L4 has a different angle
 
   private final double baseSetpoint = baseHeight;
@@ -68,10 +68,14 @@ public class Elevator extends SubsystemBase {
 
   private boolean hasCoral = dispenser.hasCoral();
 
-  // Feedforward constants
-  private final double kG = 0.42; // Gravity compensation constant
-  private final double kV = 0.06; // Velocity feedforward constant
-  private final double kS = 0.1; // Static friction constant
+  // feedforward constants
+  private final double kG = 0.42; // gravity compensation constant
+  private final double kV = 0.1; // velocity feedforward constant
+  private final double kS = 0.05; // static friction constant
+
+  private final double kP = 3;
+  private final double kI = 0.01;
+  private final double kD = 300;
 
   public Elevator() {
     configureLift();
@@ -86,20 +90,20 @@ public class Elevator extends SubsystemBase {
       .idleMode(IdleMode.kBrake)
       .smartCurrentLimit(32)
       .voltageCompensation(12);
-      // .closedLoopRampRate(1);
 
+    // would have been better for velocity conversion to be in m/s, with PID tuned accordingly
     config.encoder
-      .positionConversionFactor(conversionFactor)
-      .velocityConversionFactor(conversionFactor);
+      .positionConversionFactor(conversionFactor)  // meters/rotation
+      .velocityConversionFactor(conversionFactor);  // meters/minute (m/s would be conversionFactor/60)
 
     config.closedLoop
-      .p(2.25)
-      .i(0.001)
-      .d(0)
+      .p(kP)
+      .i(kI)
+      .d(kD)
       .outputRange(-0.40, 1)
-      .velocityFF(kV)  // Use kV as velocity feedforward
+      .velocityFF(kV)  // use kV as velocity feedforward
       .iMaxAccum(0.1)
-      .iZone(0.05);
+      .iZone(0.1);
 
     lift.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
  
@@ -180,13 +184,13 @@ public class Elevator extends SubsystemBase {
 
   public void setHeight(double height) {
     heightSetpoint = height;
-    double gravityFF = kG;  // Constant gravity compensation
-    double staticFF = kS * Math.signum(height - getHeight());  // Static friction compensation
+    double gravityFF = kG;  // constant gravity compensation
+    double staticFF = kS * Math.signum(height - getHeight());  // static friction compensation
     elevatorController.setReference(
       height, 
       ControlType.kPosition,
       ClosedLoopSlot.kSlot0,  // PID slot
-      gravityFF + staticFF  // Arbitrary feed forward
+      gravityFF + staticFF  // arbitrary feed forward
     );
   }
 
@@ -221,7 +225,10 @@ public class Elevator extends SubsystemBase {
   private double getElevatorHeightPercentage() {
     return (getHeight() - baseHeight) / (level4Height - baseHeight);
   }
-
+  /**
+   * elevator slowdown factor to prevent tipping while raised
+   * @return factor
+   */
   public double getMaxSpeedFactor() {
     if(getHeight() < 0.1) return 1;
     return Math.max(0.1, 1 - getElevatorHeightPercentage());
