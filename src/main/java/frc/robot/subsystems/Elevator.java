@@ -70,12 +70,12 @@ public class Elevator extends SubsystemBase {
 
   // feedforward constants
   private final double kG = 0.42; // gravity compensation constant
-  private final double kV = 0.1; // velocity feedforward constant
+  private final double kV = 0.1/60; // velocity feedforward constant
   private final double kS = 0.05; // static friction constant
 
   private final double kP = 3;
   private final double kI = 0.01;
-  private final double kD = 300;
+  private final double kD = 20;
 
   public Elevator() {
     configureLift();
@@ -94,7 +94,7 @@ public class Elevator extends SubsystemBase {
     // would have been better for velocity conversion to be in m/s, with PID tuned accordingly
     config.encoder
       .positionConversionFactor(conversionFactor)  // meters/rotation
-      .velocityConversionFactor(conversionFactor);  // meters/minute (m/s would be conversionFactor/60)
+      .velocityConversionFactor(conversionFactor/60);  // meters/minute (m/s would be conversionFactor/60)
 
     config.closedLoop
       .p(kP)
@@ -195,8 +195,7 @@ public class Elevator extends SubsystemBase {
   }
 
   /**
-   * Command sequence that sets the elevator target and ends when it reaches its setpoint
-   * @param level target level
+   * Command that ends when the elevator reaches its setpoint
    * @return the command to be scheduled
    */
   public Command waitToReachSetpointCommand() {
@@ -225,6 +224,7 @@ public class Elevator extends SubsystemBase {
   private double getElevatorHeightPercentage() {
     return (getHeight() - baseHeight) / (level4Height - baseHeight);
   }
+
   /**
    * elevator slowdown factor to prevent tipping while raised
    * @return factor
