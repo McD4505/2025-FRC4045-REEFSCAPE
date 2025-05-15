@@ -91,10 +91,9 @@ public class Elevator extends SubsystemBase {
       .smartCurrentLimit(32)
       .voltageCompensation(12);
 
-    // would have been better for velocity conversion to be in m/s, with PID tuned accordingly
     config.encoder
       .positionConversionFactor(conversionFactor)  // meters/rotation
-      .velocityConversionFactor(conversionFactor/60);  // meters/minute (m/s would be conversionFactor/60)
+      .velocityConversionFactor(conversionFactor/60);  // m/s would be conversionFactor/60
 
     config.closedLoop
       .p(kP)
